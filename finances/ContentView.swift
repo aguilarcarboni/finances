@@ -29,11 +29,7 @@ struct ContentView: View {
             }
 
             NavigationView {
-                ContentUnavailableView(
-                    "Coming soon...",
-                    systemImage: "house",
-                    description: Text("Assets is not implemented yet")
-                )
+                AssetsView()
             }
             .tabItem {
                 Label("Assets", systemImage: "house")
