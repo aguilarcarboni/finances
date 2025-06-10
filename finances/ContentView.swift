@@ -9,52 +9,45 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
+    
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
+        TabView {
+            BudgetView()
+                .tabItem {
+                    Label("Budget", systemImage: "dollarsign")
                 }
-                .onDelete(perform: deleteItems)
+            
+            NavigationView {
+                ContentUnavailableView(
+                    "Coming soon...",
+                    systemImage: "dollarsign.bank.building",
+                    description: Text("Savings is not implemented yet")
+                )
             }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
+            .tabItem {
+                Label("Savings", systemImage: "dollarsign.bank.building")
             }
-        } detail: {
-            Text("Select an item")
-        }
-    }
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
+            NavigationView {
+                ContentUnavailableView(
+                    "Coming soon...",
+                    systemImage: "house",
+                    description: Text("Assets is not implemented yet")
+                )
+            }
+            .tabItem {
+                Label("Assets", systemImage: "house")
+            }
 
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+            NavigationView {
+                ContentUnavailableView(
+                    "Coming soon...",
+                    systemImage: "chart.line.uptrend.xyaxis",
+                    description: Text("Investments is not implemented yet")
+                )
+            }
+            .tabItem {
+                Label("Investments", systemImage: "chart.line.uptrend.xyaxis")
             }
         }
     }
@@ -62,5 +55,4 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }
