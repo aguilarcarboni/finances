@@ -12,27 +12,14 @@ struct ContentView: View {
     
     var body: some View {
         TabView {
-            BudgetView()
+            ExpensesAccountView()
                 .tabItem {
-                    Label("Budget", systemImage: "dollarsign")
+                    Label("Expenses", systemImage: "dollarsign")
                 }
             
-            NavigationView {
-                ContentUnavailableView(
-                    "Coming soon...",
-                    systemImage: "dollarsign.bank.building",
-                    description: Text("Savings is not implemented yet")
-                )
-            }
+            SavingsView()
             .tabItem {
                 Label("Savings", systemImage: "dollarsign.bank.building")
-            }
-
-            NavigationView {
-                AssetsView()
-            }
-            .tabItem {
-                Label("Assets", systemImage: "house")
             }
 
             NavigationView {
@@ -41,10 +28,17 @@ struct ContentView: View {
                     systemImage: "chart.line.uptrend.xyaxis",
                     description: Text("Investments is not implemented yet")
                 )
+                .navigationTitle("Investments")
             }
             .tabItem {
                 Label("Investments", systemImage: "chart.line.uptrend.xyaxis")
             }
+
+
+            AssetsView()
+                .tabItem {
+                    Label("Assets", systemImage: "house")
+                }
         }
     }
 }
