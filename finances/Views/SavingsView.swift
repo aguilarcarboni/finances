@@ -2,39 +2,6 @@ import SwiftUI
 import Charts
 import Combine
 
-class SavingsViewModel: ObservableObject {
-    @Published var savingsAccount = SavingsAccount.shared
-    @Published var expensesAccount = ExpensesAccount.shared
-    
-    var savingsGrowthData: [(period: String, balance: Double)] {
-        var runningBalance: Double = 0
-        return savingsAccount.biweeklyPeriods.map { period in
-            runningBalance += period.netBalance
-            return (period: period.dateRange, balance: runningBalance)
-        }
-    }
-    
-    var totalSavingsBalance: Double {
-        savingsGrowthData.last?.balance ?? 0
-    }
-    
-    var transferValidation: (isValid: Bool, message: String) {
-        let expensesSavingsTransfers = expensesAccount.biweeklyPeriods.reduce(0.0) { total, period in
-            total + period.debitsForCategory("Savings")
-        }
-        
-        let savingsIncomingTransfers = savingsAccount.biweeklyPeriods.reduce(0.0) { total, period in
-            total + period.creditsForCategory("Emergency Fund") // Where the transfers go
-        }
-        
-        let isValid = abs(expensesSavingsTransfers - savingsIncomingTransfers) < 1.0 // Allow for rounding
-        let message = isValid 
-            ? "✅ Transfers match perfectly" 
-            : "⚠️ Transfer mismatch: ₡\(Int(abs(expensesSavingsTransfers - savingsIncomingTransfers)).formatted()) difference"
-        
-        return (isValid, message)
-    }
-}
 
 struct SavingsView: View {
     @StateObject private var viewModel = SavingsViewModel()
@@ -84,6 +51,110 @@ struct SavingsView: View {
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(12)
                     .padding(.horizontal)
+                    
+                    // Emergency Fund Progress Section
+                    VStack(alignment: .leading, spacing: 20) {
+                        HStack {
+                            Text("Emergency Fund Progress")
+                                .font(.title2.bold())
+                            Spacer()
+                            Text("₡\(Int(viewModel.emergencyFundTarget).formatted())")
+                                .font(.title3.monospacedDigit())
+                                .fontWeight(.semibold)
+                                .foregroundColor(.green)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            // Progress Bar
+                            ProgressView(value: viewModel.emergencyFundProgress)
+                                .progressViewStyle(LinearProgressViewStyle(tint: .green))
+                                .scaleEffect(x: 1, y: 2.5, anchor: .center)
+                            
+                            // Progress Details
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Current")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("₡\(Int(viewModel.totalSavingsBalance).formatted())")
+                                        .font(.subheadline.monospacedDigit())
+                                        .fontWeight(.semibold)
+                                }
+                                
+                                Spacer()
+                                
+                                VStack(alignment: .center, spacing: 4) {
+                                    Text("Progress")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("\(Int(viewModel.emergencyFundProgressPercentage))%")
+                                        .font(.title3.monospacedDigit())
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.green)
+                                }
+                                
+                                Spacer()
+                                
+                                VStack(alignment: .trailing, spacing: 4) {
+                                    Text("Remaining")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("₡\(Int(viewModel.emergencyFundRemaining).formatted())")
+                                        .font(.subheadline.monospacedDigit())
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.orange)
+                                }
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(20)
+                    .padding(.horizontal)
+                    
+                    // Savings Categories Section (shown when emergency fund is complete)
+                    if viewModel.isEmergencyFundComplete && !viewModel.savingsCategories.isEmpty {
+                        VStack(alignment: .leading, spacing: 20) {
+                            HStack {
+                                Text("Savings Categories")
+                                    .font(.title2.bold())
+                                Spacer()
+                                Text("₡\(Int(viewModel.excessSavings).formatted())")
+                                    .font(.title3.monospacedDigit())
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.blue)
+                            }
+                            
+                            VStack(spacing: 16) {
+                                ForEach(viewModel.savingsCategories, id: \.name) { category in
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(category.name)
+                                                .font(.headline)
+                                                .fontWeight(.semibold)
+                                            Text("\(Int(category.percentage * 100))% allocation")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Text("₡\(Int(category.amount).formatted())")
+                                            .font(.subheadline.monospacedDigit())
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.primary)
+                                    }
+                                    .padding()
+                                    .background(Color.gray.opacity(0.1))
+                                    .cornerRadius(12)
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(20)
+                        .padding(.horizontal)
+                    }
                     
                     // Growth Chart Section
                     VStack(alignment: .leading, spacing: 20) {
@@ -150,10 +221,3 @@ struct SavingsView: View {
         }
     }
 }
-
-// MARK: - Preview
-struct SavingsView_Previews: PreviewProvider {
-    static var previews: some View {
-        SavingsView()
-    }
-} 

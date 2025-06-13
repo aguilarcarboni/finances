@@ -9,18 +9,30 @@ import Foundation
 import SwiftUI
 import Charts
 
-struct Asset: Identifiable {
-    var id: UUID
-    var name: String
-    var type: String
-    var purchaseDate: Date
-    var purchasePrice: Double
-    var downPayment: Double
-    var interestRate: Double
-    var loanTermYears: Int
-    var currentMarketValue: Double?
-    var customDepreciationRate: Double?
-    var expenseCategory: String // Category name in ExpensesAccount for tracking actual payments
+enum DepreciationMethod {
+    case straightLine(years: Int)
+    case custom(rate: Double)
+}
+
+struct DepreciationDataPoint: Identifiable {
+    let id = UUID()
+    let year: Int
+    let value: Double
+}
+
+struct PaymentDataPoint: Identifiable {
+    let id = UUID()
+    let month: Int
+    let principal: Double
+    let interest: Double
+    let type: String
+}
+
+struct PaymentComparisonDataPoint: Identifiable {
+    let id = UUID()
+    let periodName: String
+    let amount: Double
+    let type: String
 }
 
 extension Asset {
@@ -97,7 +109,6 @@ extension Asset {
     }
 }
 
-
 struct AssetDetailView: View {
     let asset: Asset
     @ObservedObject private var expensesAccount = ExpensesAccount.shared
@@ -169,7 +180,7 @@ struct AssetDetailView: View {
         ], spacing: 16) {
             
             // Expected Loan Balance
-            MetricCard(
+            AssetMetricCard(
                 title: "Expected Loan Balance",
                 value: asset.remainingLoanBalance,
                 subtitle: "at \(asset.interestRate)% APR",
@@ -178,7 +189,7 @@ struct AssetDetailView: View {
             )
 
             // Actual Loan Balance Card
-            MetricCard(
+            AssetMetricCard(
                 title: "Actual Loan Balance",
                 value: actualLoanBalance,
                 subtitle: "based on payments made",
@@ -1199,35 +1210,7 @@ struct AssetDetailView: View {
     }
 }
 
-enum DepreciationMethod {
-    case straightLine(years: Int)
-    case custom(rate: Double)
-}
-
-struct DepreciationDataPoint: Identifiable {
-    let id = UUID()
-    let year: Int
-    let value: Double
-}
-
-struct PaymentDataPoint: Identifiable {
-    let id = UUID()
-    let month: Int
-    let principal: Double
-    let interest: Double
-    let type: String
-}
-
-struct PaymentComparisonDataPoint: Identifiable {
-    let id = UUID()
-    let periodName: String
-    let amount: Double
-    let type: String
-}
-
-
-// MARK: - Supporting Views
-struct MetricCard: View {
+struct AssetMetricCard: View {
     let title: String
     let value: Double
     let subtitle: String
@@ -1280,8 +1263,4 @@ struct DetailRow: View {
         }
         .font(.subheadline)
     }
-}
-
-#Preview {
-    AssetsView()
 }

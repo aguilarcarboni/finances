@@ -22,14 +22,7 @@ struct ContentView: View {
                 Label("Savings", systemImage: "dollarsign.bank.building")
             }
 
-            NavigationView {
-                ContentUnavailableView(
-                    "Coming soon...",
-                    systemImage: "chart.line.uptrend.xyaxis",
-                    description: Text("Investments is not implemented yet")
-                )
-                .navigationTitle("Investments")
-            }
+            InvestmentsView()
             .tabItem {
                 Label("Investments", systemImage: "chart.line.uptrend.xyaxis")
             }

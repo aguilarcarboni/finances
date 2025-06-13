@@ -1,14 +1,6 @@
 import SwiftUI
 import Combine
 
-class ExpensesAccountViewModel: ObservableObject {
-    @Published var expensesAccount = ExpensesAccount.shared
-    
-    func debitsForCategory(_ category: BudgetCategory) -> Double {
-        expensesAccount.debitsForCategory(category.name)
-    }
-}
-
 struct ExpensesAccountView: View {
     @StateObject private var viewModel = ExpensesAccountViewModel()
     private var account: ExpensesAccount { viewModel.expensesAccount }
@@ -175,7 +167,6 @@ struct ExpensesAccountView: View {
     }
 }
 
-// MARK: - Reusable Components
 struct BudgetRow: View {
     let category: String
     let currentAmount: Double
@@ -267,11 +258,3 @@ struct TransactionRow: View {
         }
     }
 }
-
-// MARK: - Preview
-struct ExpensesAccountView_Previews: PreviewProvider {
-    static var previews: some View {
-        ExpensesAccountView()
-    }
-}
-
