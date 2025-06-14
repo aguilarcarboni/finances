@@ -12,25 +12,34 @@ struct ContentView: View {
     
     var body: some View {
         TabView {
+            DashboardView()
+                .tabItem {
+                    Label("Dashboard", systemImage: "gauge.with.dots.needle.33percent")
+                }
+            
             ExpensesAccountView()
                 .tabItem {
                     Label("Expenses", systemImage: "dollarsign")
                 }
             
             SavingsView()
-            .tabItem {
-                Label("Savings", systemImage: "dollarsign.bank.building")
-            }
+                .tabItem {
+                    Label("Savings", systemImage: "dollarsign.bank.building")
+                }
 
             InvestmentsView()
-            .tabItem {
-                Label("Investments", systemImage: "chart.line.uptrend.xyaxis")
-            }
-
+                .tabItem {
+                    Label("Investments", systemImage: "chart.line.uptrend.xyaxis")
+                }
 
             AssetsView()
                 .tabItem {
                     Label("Assets", systemImage: "house")
+                }
+            
+            DecisionModulesView()
+                .tabItem {
+                    Label("Tools", systemImage: "wrench.and.screwdriver")
                 }
         }
     }

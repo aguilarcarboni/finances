@@ -8,27 +8,12 @@
 import SwiftUI
 
 struct AssetsView: View {
-    @State private var assets: [Asset] = [
-        Asset(
-            id: UUID(),
-            name: "Nissan Magnite",
-            type: "Car",
-            purchaseDate: Date(timeIntervalSince1970: 1746142058),
-            purchasePrice: 24900.00,
-            downPayment: 6000.00,
-            interestRate: 7.5,
-            loanTermYears: 8,
-            currentMarketValue: 22400.00,
-            customDepreciationRate: nil,
-            expenseCategory: "Debt"
-        )
-    ]
-    
+    @StateObject private var viewModel = AssetsViewModel()
     @State private var selectedAsset: Asset?
     
     var body: some View {
         NavigationView {
-            List(assets) { asset in
+            List(viewModel.assets) { asset in
                 AssetListRow(asset: asset)
                     .onTapGesture {
                         selectedAsset = asset
