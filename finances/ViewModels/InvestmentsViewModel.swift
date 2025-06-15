@@ -1,90 +1,85 @@
 import Foundation
 import Combine
 
-struct TokenResponse: Decodable {
-    let access_token: String
-    let expires_in: Int
-}
-
-enum IBKRError: Error, LocalizedError {
-    case notImplemented(String)
-    case connectionFailed(String)
-    case authenticationFailed(String)
-    case apiError(String)
-    
-    var errorDescription: String? {
-        switch self {
-        case .notImplemented(let message):
-            return "Not Implemented: \(message)"
-        case .connectionFailed(let message):
-            return "Connection Failed: \(message)"
-        case .authenticationFailed(let message):
-            return "Authentication Failed: \(message)"
-        case .apiError(let message):
-            return "API Error: \(message)"
-        }
-    }
-}
-
 @MainActor
 class InvestmentsViewModel: ObservableObject {
     @Published var investmentsAccount = InvestmentsAccount.shared
     @Published var isLoading = false
     @Published var error: String?
     
-    // Legacy IBKR API properties (kept for future integration)
+    // Legacy properties for backward compatibility with the UI
     @Published var items: [AccountSummaryItem] = []
-    private var accessToken: String?
+    
+    init() {
+        // Create account summary items from investment account data
+        updateItems()
+        
+        // Listen for changes in investment account
+        investmentsAccount.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.updateItems()
+            }
+            .store(in: &cancellables)
+    }
+    
+    private var cancellables = Set<AnyCancellable>()
+    
+    private func updateItems() {
+        items = [
+            AccountSummaryItem(
+                title: "Portfolio Value",
+                subtitle: investmentsAccount.isConnectedToIBKR ? "Live Data" : "Offline",
+                amount: investmentsAccount.rawPortfolioValue,
+                trend: getTrend(for: investmentsAccount.offlineAwareDayChangePercentage),
+                icon: "chart.line.uptrend.xyaxis",
+                color: "green"
+            ),
+            AccountSummaryItem(
+                title: "Unrealized P&L",
+                subtitle: "Current Positions",
+                amount: investmentsAccount.unrealizedGains,
+                trend: getTrend(for: investmentsAccount.returnPercentage),
+                icon: "arrow.up.right.circle",
+                color: investmentsAccount.unrealizedGains >= 0 ? "green" : "red"
+            )
+        ]
+    }
+    
+    private func getTrend(for percentage: Double) -> AccountSummaryItem.Trend {
+        if percentage > 0 {
+            return .up(percentage / 100)
+        } else if percentage < 0 {
+            return .down(percentage / 100)
+        } else {
+            return .neutral
+        }
+    }
     
     // MARK: - IBKR API Methods
-    func fetchAccountSummary() async {
+    func connectToIBKR() async {
         isLoading = true
         error = nil
         
         do {
-            // Attempt to fetch real data from IBKR API
-            // This will fail until proper IBKR API integration is implemented
-            throw IBKRError.notImplemented("IBKR API integration not yet implemented")
-            
-        } catch {
-            print("[InvestmentsViewModel] Error: \(error)")
-            self.error = error.localizedDescription
-            
-            // Disconnect on API failure
-            investmentsAccount.disconnectFromIBKR()
-        }
-        isLoading = false
-    }
-    
-    // MARK: - Authentication
-    private func authenticate() async throws {
-        // Real IBKR authentication would happen here
-        // For now, this will always fail until proper integration is implemented
-        throw IBKRError.authenticationFailed("IBKR authentication not configured")
-    }
-    
-    func connectToIBKR() async {
-        do {
-            try await authenticate()
-            investmentsAccount.connectToIBKR()
-            await fetchAccountSummary()
-            await investmentsAccount.syncWithIBKR()
+            try await investmentsAccount.connectToIBKR()
         } catch {
             self.error = "Failed to connect to IBKR: \(error.localizedDescription)"
-            investmentsAccount.disconnectFromIBKR()
         }
+        
+        isLoading = false
     }
     
     func disconnectFromIBKR() {
         investmentsAccount.disconnectFromIBKR()
-        accessToken = nil
-        items = []
     }
     
     func refreshData() async {
-        if investmentsAccount.isConnectedToIBKR {
-            await fetchAccountSummary()
-            await investmentsAccount.syncWithIBKR()
-        }
+        isLoading = true
+        error = nil
+        
+        await investmentsAccount.syncWithIBKR()
+        
+        isLoading = false
     }
 }

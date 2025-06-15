@@ -17,7 +17,6 @@ struct DashboardView: View {
                     // Capital Allocation Section
                     CapitalAllocationCardView(allocation: wealthEngine.capitalAllocation)
                 }
-                .padding()
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Finances")
@@ -35,23 +34,26 @@ struct NetWorthCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                VStack(alignment: .leading) {
-                    Text("Net Worth")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                    
-                    Text(netWorth.formatted(.currency(code: "CRC")))
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(netWorth >= 0 ? .green : .red)
-                }
-            
+                Text("Net Worth")
+                    .font(.headline)
+                
+                Spacer()
+                
+                Image(systemName: "dollarsign.circle")
+                    .font(.title2)
+                    .foregroundColor(.green)
             }
+            
+            Text(netWorth.formatted(.currency(code: "CRC")))
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .foregroundColor(netWorth >= 0 ? .green : .red)
         }
+        .frame(maxWidth: .infinity)
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.gray.opacity(0.1))
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .padding(.horizontal)
     }
 }
 
@@ -167,10 +169,11 @@ struct CapitalAllocationCardView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity)
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.gray.opacity(0.1))
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .padding(.horizontal)
     }
 }
 

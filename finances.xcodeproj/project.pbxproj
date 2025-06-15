@@ -29,9 +29,22 @@
 		91B68CB12DF7B4DB00481672 /* financesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = financesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9192EAC12DFEB27B00FFA9E2 /* Exceptions for "finances" folder in "finances" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 91B68C972DF7B4DA00481672 /* finances */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		91B68C9A2DF7B4DA00481672 /* finances */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				9192EAC12DFEB27B00FFA9E2 /* Exceptions for "finances" folder in "finances" target */,
+			);
 			path = finances;
 			sourceTree = "<group>";
 		};
@@ -399,6 +412,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = finances/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Finances;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -446,6 +460,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = finances/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Finances;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
