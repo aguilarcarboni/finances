@@ -12,11 +12,6 @@ struct ContentView: View {
     
     var body: some View {
         TabView {
-            DashboardView()
-                .tabItem {
-                    Label("Dashboard", systemImage: "gauge.with.dots.needle.33percent")
-                }
-            
             ExpensesAccountView()
                 .tabItem {
                     Label("Expenses", systemImage: "dollarsign")
@@ -35,11 +30,6 @@ struct ContentView: View {
             AssetsView()
                 .tabItem {
                     Label("Assets", systemImage: "house")
-                }
-            
-            DecisionModulesView()
-                .tabItem {
-                    Label("Tools", systemImage: "wrench.and.screwdriver")
                 }
         }
     }
