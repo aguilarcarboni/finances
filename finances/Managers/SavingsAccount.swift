@@ -7,50 +7,88 @@ class SavingsAccount: ObservableObject, Account {
     
     static let shared = SavingsAccount()
 
-    @Published var budget: [BudgetCategory] = [
-        BudgetCategory(name: "Emergency Fund", budget: 50000),
-        BudgetCategory(name: "Investment", budget: 80000),
-        BudgetCategory(name: "Vacation Fund", budget: 30000),
-        BudgetCategory(name: "Home Down Payment", budget: 40000),
-        BudgetCategory(name: "Retirement", budget: 50000),
+    // MARK: - Savings-specific Configuration
+    @Published var emergencyFundTarget: Double = 250_000
+    
+    // Percentage-based categories for excess savings (after emergency fund is met)
+    @Published var savingsAllocationCategories: [(name: String, percentage: Double)] = [
+        ("Trips", 0.5),
+        ("Long term", 0.5)
     ]
+    
+    // Emergency fund is the only "budget" category - others are percentage-based
+    @Published var budget: [BudgetCategory] = []
+    
+    // MARK: - Computed Financial Metrics
+    var savingsGrowthData: [(period: String, balance: Double)] {
+        var runningBalance: Double = 0
+        return biweeklyPeriods.map { period in
+            runningBalance += period.netBalance
+            return (period: period.dateRange, balance: runningBalance)
+        }
+    }
+    
+    var totalSavingsBalance: Double {
+        savingsGrowthData.last?.balance ?? 0
+    }
+    
+    var emergencyFundProgress: Double {
+        min(totalSavingsBalance / emergencyFundTarget, 1.0)
+    }
+    
+    var emergencyFundProgressPercentage: Double {
+        emergencyFundProgress * 100
+    }
+    
+    var emergencyFundRemaining: Double {
+        max(emergencyFundTarget - totalSavingsBalance, 0)
+    }
+    
+    var isEmergencyFundComplete: Bool {
+        totalSavingsBalance >= emergencyFundTarget
+    }
+    
+    var excessSavings: Double {
+        max(totalSavingsBalance - emergencyFundTarget, 0)
+    }
+    
+    var savingsCategories: [(name: String, amount: Double, percentage: Double)] {
+        guard isEmergencyFundComplete && excessSavings > 0 else { return [] }
+        
+        return savingsAllocationCategories.map { (name, percentage) in
+            let amount = excessSavings * percentage
+            return (name: name, amount: amount, percentage: percentage)
+        }
+    }
+    
+    // MARK: - Emergency Fund Specific Properties
+    var emergencyFundBalance: Double {
+        min(totalSavingsBalance, emergencyFundTarget)
+    }
+    
+    // MARK: - Account Protocol Implementation for Savings-specific Logic
+    func budgetForCategory(_ categoryName: String) -> Double {
+        if categoryName == "Emergency Fund" {
+            return emergencyFundTarget
+        }
+        // For percentage-based categories, return the calculated amount
+        return savingsCategories.first { $0.name == categoryName }?.amount ?? 0
+    }
     
     private init() {
         setupMockData()
     }
     
     private func setupMockData() {
+
         // Create calendar and date components
         let calendar = Calendar.current
-        
-        let may1 = calendar.date(from: DateComponents(year: 2024, month: 5, day: 1))!
-        let may15 = calendar.date(from: DateComponents(year: 2024, month: 5, day: 15))!
-        let may31 = calendar.date(from: DateComponents(year: 2024, month: 5, day: 31))!
-        let june1 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 1))!
         let june15 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 15))!
         let june30 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 30))!
 
-        
-        let q1MayTransactions = [
-            Transaction(name: "Transfer from Expenses", category: "Emergency Fund", amount: 100000, type: .credit, date: may15), // Matches ExpensesAccount debit
-        ]
-
-        let q2MayTransactions = [
-            Transaction(name: "Transfer from Expenses", category: "Emergency Fund", amount: 100000, type: .credit, date: may31), // Matches ExpensesAccount debit
-        ]
-
-        let q1JuneTransactions = [
-            Transaction(name: "Transfer from Expenses", category: "Emergency Fund", amount: 100000, type: .credit, date: june1), // Matches ExpensesAccount debit
-        ]
-
-        let q2JuneTransactions = [
-            Transaction(name: "Transfer from Expenses", category: "Emergency Fund", amount: 100000, type: .credit, date: june15), // Matches ExpensesAccount debit
-        ]
+        let q2JuneTransactions: [Transaction] = []
         
         biweeklyPeriods = [
-            BiweeklyPeriod(startDate: may15, endDate: may31, transactions: q1MayTransactions),
-            BiweeklyPeriod(startDate: may31, endDate: june1, transactions: q2MayTransactions),
-            BiweeklyPeriod(startDate: june1, endDate: june15, transactions: q1JuneTransactions),
             BiweeklyPeriod(startDate: june15, endDate: june30, transactions: q2JuneTransactions),
         ]
     }
@@ -112,11 +150,66 @@ class SavingsAccount: ObservableObject, Account {
         return summary.netBalance
     }
     
-    var investmentPerformance: Double {
-        netForCategory("Investment")
+    // MARK: - Transfer Validation
+    func validateTransfersWithExpenses(_ expensesAccount: ExpensesAccount) -> (isValid: Bool, message: String) {
+        let expensesSavingsTransfers = expensesAccount.biweeklyPeriods.reduce(0.0) { total, period in
+            total + period.debitsForCategory("Savings")
+        }
+        
+        let savingsIncomingTransfers = biweeklyPeriods.reduce(0.0) { total, period in
+            total + period.creditsForCategory("Savings") // All savings come in as generic "Savings"
+        }
+        
+        let isValid = abs(expensesSavingsTransfers - savingsIncomingTransfers) < 1.0 // Allow for rounding
+        let message = isValid 
+            ? "✅ Transfers match perfectly" 
+            : "⚠️ Transfer mismatch: ₡\(Int(abs(expensesSavingsTransfers - savingsIncomingTransfers)).formatted()) difference"
+        
+        return (isValid, message)
     }
     
-    var emergencyFundBalance: Double {
-        netForCategory("Emergency Fund")
+    // MARK: - Financial Goal Management
+    func updateEmergencyFundTarget(_ newTarget: Double) {
+        emergencyFundTarget = newTarget
+    }
+    
+    func getGoalProgress(for category: String) -> Double {
+        if category == "Emergency Fund" {
+            return emergencyFundProgress
+        }
+        // For percentage-based categories, they don't have fixed goals
+        // Their "progress" is just whether they have allocated amounts (100% when emergency fund is complete)
+        return isEmergencyFundComplete ? 1.0 : 0.0
+    }
+    
+    func getGoalProgressPercentage(for category: String) -> Double {
+        getGoalProgress(for: category) * 100
+    }
+    
+    // MARK: - Category Management
+    func updateSavingsAllocation(_ categories: [(name: String, percentage: Double)]) {
+        // Ensure percentages add up to 1.0
+        let totalPercentage = categories.reduce(0) { $0 + $1.percentage }
+        guard abs(totalPercentage - 1.0) < 0.001 else {
+            print("Warning: Savings allocation percentages should add up to 100%")
+            return
+        }
+        savingsAllocationCategories = categories
+    }
+    
+    func addSavingsCategory(name: String, percentage: Double) {
+        // Adjust existing percentages to accommodate new category
+        let existingTotal = savingsAllocationCategories.reduce(0) { $0 + $1.percentage }
+        let remainingPercentage = 1.0 - existingTotal
+        
+        if remainingPercentage >= percentage {
+            savingsAllocationCategories.append((name: name, percentage: percentage))
+        } else {
+            print("Warning: Cannot add category, insufficient remaining percentage allocation")
+        }
+    }
+    
+    func removeSavingsCategory(name: String) {
+        savingsAllocationCategories.removeAll { $0.name == name }
     }
 } 

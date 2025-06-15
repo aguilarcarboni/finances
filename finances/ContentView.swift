@@ -12,6 +12,11 @@ struct ContentView: View {
     
     var body: some View {
         TabView {
+            DashboardView()
+                .tabItem {
+                    Label("Dashboard", systemImage: "chart.bar.fill")
+                }
+            
             ExpensesAccountView()
                 .tabItem {
                     Label("Expenses", systemImage: "dollarsign")

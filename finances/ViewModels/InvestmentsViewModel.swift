@@ -6,48 +6,85 @@ struct TokenResponse: Decodable {
     let expires_in: Int
 }
 
+enum IBKRError: Error, LocalizedError {
+    case notImplemented(String)
+    case connectionFailed(String)
+    case authenticationFailed(String)
+    case apiError(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .notImplemented(let message):
+            return "Not Implemented: \(message)"
+        case .connectionFailed(let message):
+            return "Connection Failed: \(message)"
+        case .authenticationFailed(let message):
+            return "Authentication Failed: \(message)"
+        case .apiError(let message):
+            return "API Error: \(message)"
+        }
+    }
+}
+
 @MainActor
 class InvestmentsViewModel: ObservableObject {
-    @Published var items: [AccountSummaryItem] = []
+    @Published var investmentsAccount = InvestmentsAccount.shared
     @Published var isLoading = false
     @Published var error: String?
-
-    var url = "http://10.4.178.146:5000"
+    
+    // Legacy IBKR API properties (kept for future integration)
+    @Published var items: [AccountSummaryItem] = []
+    private var accessToken: String?
+    
+    // MARK: - IBKR API Methods
     func fetchAccountSummary() async {
         isLoading = true
         error = nil
+        
         do {
-            // 1. Get token
-            let tokenURL = URL(string: url + "/token")!
-            var tokenRequest = URLRequest(url: tokenURL)
-            tokenRequest.httpMethod = "POST"
-            tokenRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            let tokenBody = ["token": "admin", "scopes": "all"]
-            tokenRequest.httpBody = try JSONEncoder().encode(tokenBody)
-            let (tokenData, _) = try await URLSession.shared.data(for: tokenRequest)
-            if let tokenString = String(data: tokenData, encoding: .utf8) {
-                print("[InvestmentsViewModel] Token response: \(tokenString)")
-            }
-            let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: tokenData)
-            let accessToken = tokenResponse.access_token
-
-            // 2. Get account summary
-            let summaryURL = URL(string: url + "/trading/account/summary")!
-            var summaryRequest = URLRequest(url: summaryURL)
-            summaryRequest.httpMethod = "POST"
-            summaryRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            summaryRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-            summaryRequest.httpBody = try JSONEncoder().encode([String: String]())
-            let (summaryData, _) = try await URLSession.shared.data(for: summaryRequest)
-            if let summaryString = String(data: summaryData, encoding: .utf8) {
-                print("[InvestmentsViewModel] Summary response: \(summaryString)")
-            }
-            let items = try JSONDecoder().decode([AccountSummaryItem].self, from: summaryData)
-            self.items = items
+            // Attempt to fetch real data from IBKR API
+            // This will fail until proper IBKR API integration is implemented
+            throw IBKRError.notImplemented("IBKR API integration not yet implemented")
+            
         } catch {
             print("[InvestmentsViewModel] Error: \(error)")
             self.error = error.localizedDescription
+            
+            // Disconnect on API failure
+            investmentsAccount.disconnectFromIBKR()
         }
         isLoading = false
     }
-} 
+    
+    // MARK: - Authentication
+    private func authenticate() async throws {
+        // Real IBKR authentication would happen here
+        // For now, this will always fail until proper integration is implemented
+        throw IBKRError.authenticationFailed("IBKR authentication not configured")
+    }
+    
+    func connectToIBKR() async {
+        do {
+            try await authenticate()
+            investmentsAccount.connectToIBKR()
+            await fetchAccountSummary()
+            await investmentsAccount.syncWithIBKR()
+        } catch {
+            self.error = "Failed to connect to IBKR: \(error.localizedDescription)"
+            investmentsAccount.disconnectFromIBKR()
+        }
+    }
+    
+    func disconnectFromIBKR() {
+        investmentsAccount.disconnectFromIBKR()
+        accessToken = nil
+        items = []
+    }
+    
+    func refreshData() async {
+        if investmentsAccount.isConnectedToIBKR {
+            await fetchAccountSummary()
+            await investmentsAccount.syncWithIBKR()
+        }
+    }
+}

@@ -9,11 +9,12 @@ import SwiftUI
 
 struct AssetsView: View {
     @StateObject private var viewModel = AssetsViewModel()
+    @ObservedObject private var assetsManager = AssetsManager.shared
     @State private var selectedAsset: Asset?
     
     var body: some View {
         NavigationView {
-            List(viewModel.assets) { asset in
+            List(assetsManager.assets) { asset in
                 AssetListRow(asset: asset)
                     .onTapGesture {
                         selectedAsset = asset
@@ -50,12 +51,12 @@ struct AssetListRow: View {
                     .foregroundStyle(.secondary)
                 
                 HStack(spacing: 12) {
-                    Text("Value: $\(asset.currentValue, specifier: "%.0f")")
+                    Text("Value: ₡\(asset.currentValue, specifier: "%.0f")")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     
                     if asset.remainingLoanBalance > 0 {
-                        Text("Loan: $\(asset.remainingLoanBalance, specifier: "%.0f")")
+                        Text("Loan: ₡\(asset.remainingLoanBalance, specifier: "%.0f")")
                             .font(.caption)
                             .foregroundStyle(.orange)
                     }
@@ -65,7 +66,7 @@ struct AssetListRow: View {
             Spacer()
             
             VStack(alignment: .trailing, spacing: 4) {
-                Text("\(asset.equity >= 0 ? "+" : "")$\(abs(asset.equity))")
+                Text("₡\(abs(asset.equity), specifier: "%.2f")")
                     .font(.headline)
                     .fontWeight(.semibold)
                     .foregroundStyle(asset.equity >= 0 ? .green : .red)

@@ -5,6 +5,7 @@ import Combine
 
 struct SavingsView: View {
     @StateObject private var viewModel = SavingsViewModel()
+    @ObservedObject private var savingsAccount = SavingsAccount.shared
     
     private var currencyFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -41,7 +42,7 @@ struct SavingsView: View {
                             Text("Total Balance")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            Text("₡\(Int(viewModel.totalSavingsBalance).formatted())")
+                            Text("₡\(Int(savingsAccount.totalSavingsBalance).formatted())")
                                 .font(.title2.monospacedDigit())
                                 .fontWeight(.bold)
                                 .foregroundColor(.green)
@@ -58,7 +59,7 @@ struct SavingsView: View {
                             Text("Emergency Fund Progress")
                                 .font(.title2.bold())
                             Spacer()
-                            Text("₡\(Int(viewModel.emergencyFundTarget).formatted())")
+                            Text("₡\(Int(savingsAccount.emergencyFundTarget).formatted())")
                                 .font(.title3.monospacedDigit())
                                 .fontWeight(.semibold)
                                 .foregroundColor(.green)
@@ -66,7 +67,7 @@ struct SavingsView: View {
                         
                         VStack(alignment: .leading, spacing: 12) {
                             // Progress Bar
-                            ProgressView(value: viewModel.emergencyFundProgress)
+                            ProgressView(value: savingsAccount.emergencyFundProgress)
                                 .progressViewStyle(LinearProgressViewStyle(tint: .green))
                                 .scaleEffect(x: 1, y: 2.5, anchor: .center)
                             
@@ -76,7 +77,7 @@ struct SavingsView: View {
                                     Text("Current")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
-                                    Text("₡\(Int(viewModel.totalSavingsBalance).formatted())")
+                                    Text("₡\(Int(savingsAccount.totalSavingsBalance).formatted())")
                                         .font(.subheadline.monospacedDigit())
                                         .fontWeight(.semibold)
                                 }
@@ -87,7 +88,7 @@ struct SavingsView: View {
                                     Text("Progress")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
-                                    Text("\(Int(viewModel.emergencyFundProgressPercentage))%")
+                                    Text("\(Int(savingsAccount.emergencyFundProgressPercentage))%")
                                         .font(.title3.monospacedDigit())
                                         .fontWeight(.bold)
                                         .foregroundColor(.green)
@@ -99,7 +100,7 @@ struct SavingsView: View {
                                     Text("Remaining")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
-                                    Text("₡\(Int(viewModel.emergencyFundRemaining).formatted())")
+                                    Text("₡\(Int(savingsAccount.emergencyFundRemaining).formatted())")
                                         .font(.subheadline.monospacedDigit())
                                         .fontWeight(.semibold)
                                         .foregroundColor(.orange)
@@ -113,20 +114,20 @@ struct SavingsView: View {
                     .padding(.horizontal)
                     
                     // Savings Categories Section (shown when emergency fund is complete)
-                    if viewModel.isEmergencyFundComplete && !viewModel.savingsCategories.isEmpty {
+                    if savingsAccount.isEmergencyFundComplete && !savingsAccount.savingsCategories.isEmpty {
                         VStack(alignment: .leading, spacing: 20) {
                             HStack {
                                 Text("Savings Categories")
                                     .font(.title2.bold())
                                 Spacer()
-                                Text("₡\(Int(viewModel.excessSavings).formatted())")
+                                Text("₡\(Int(savingsAccount.excessSavings).formatted())")
                                     .font(.title3.monospacedDigit())
                                     .fontWeight(.semibold)
                                     .foregroundColor(.blue)
                             }
                             
                             VStack(spacing: 16) {
-                                ForEach(viewModel.savingsCategories, id: \.name) { category in
+                                ForEach(savingsAccount.savingsCategories, id: \.name) { category in
                                     HStack {
                                         VStack(alignment: .leading, spacing: 4) {
                                             Text(category.name)
@@ -161,8 +162,8 @@ struct SavingsView: View {
                         Text("Savings Growth")
                             .font(.title2.bold())
                         
-                        if !viewModel.savingsGrowthData.isEmpty {
-                            Chart(viewModel.savingsGrowthData, id: \.period) { item in
+                        if !savingsAccount.savingsGrowthData.isEmpty {
+                            Chart(savingsAccount.savingsGrowthData, id: \.period) { item in
                                 AreaMark(
                                     x: .value("Period", item.period),
                                     y: .value("Balance", item.balance)

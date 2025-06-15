@@ -35,15 +35,6 @@ struct ExpensesAccountView: View {
                                         .fontWeight(.bold)
                                         .foregroundColor(account.netBalance >= 0 ? .green : .red)
                                 }
-                                Spacer()
-                                VStack(alignment: .trailing, spacing: 4) {
-                                    Text("Total In: ₡\(Int(account.totalCredits).formatted())")
-                                        .font(.caption.monospacedDigit())
-                                        .foregroundColor(.green)
-                                    Text("Total Out: ₡\(Int(account.totalDebits).formatted())")
-                                        .font(.caption.monospacedDigit())
-                                        .foregroundColor(.red)
-                                }
                             }
                         }
                         .padding()
@@ -54,11 +45,9 @@ struct ExpensesAccountView: View {
 
                     // Budget vs Actual Section
                     VStack(alignment: .leading, spacing: 20) {
-                        Text("Budget vs Actual")
-                            .font(.title2.bold())
                         
                         ForEach(account.budget) { category in
-                            let actualSpent = viewModel.debitsForCategory(category)
+                            let actualSpent = account.debitsForCategory(category.name)
                             BudgetRow(
                                 category: category.name,
                                 currentAmount: actualSpent,
@@ -135,7 +124,7 @@ struct ExpensesAccountView: View {
 
                     // All Credits (Income) Section
                     VStack(alignment: .leading, spacing: 15) {
-                        Text("Credits (Income)")
+                        Text("Income")
                             .font(.title2.bold())
                         
                         ForEach(account.credits.sorted { $0.date > $1.date }) { transaction in

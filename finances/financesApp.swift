@@ -10,6 +10,10 @@ import SwiftData
 
 @main
 struct financesApp: App {
+    
+    init() {
+        // Mock data is now loaded directly in each account manager's init
+    }
 
     var body: some Scene {
         WindowGroup {
