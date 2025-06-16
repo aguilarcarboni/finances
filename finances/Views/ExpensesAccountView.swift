@@ -3,7 +3,8 @@ import Combine
 
 struct ExpensesAccountView: View {
     @StateObject private var viewModel = ExpensesAccountViewModel()
-    private var account: ExpensesAccount { viewModel.expensesAccount }
+    @ObservedObject private var account = ExpensesAccount.shared
+    @State private var showingDatePicker = false
 
     var body: some View {
         NavigationStack {
@@ -13,14 +14,15 @@ struct ExpensesAccountView: View {
                     // Current Month Header
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Text("Expenses Account")
-                                .font(.headline)
-                                .foregroundColor(.primary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Expenses Account")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                Text(getDateRangeDisplay())
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
                             Spacer()
-                            Text(getCurrentMonthRange())
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.primary)
                         }
                         
                         // Account Balance Summary
@@ -29,10 +31,10 @@ struct ExpensesAccountView: View {
                                 Text("Account Balance")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                Text("₡\(Int(account.netBalance).formatted())")
+                                Text("₡\(Int(account.filteredNetBalance).formatted())")
                                     .font(.title2.monospacedDigit())
                                     .fontWeight(.bold)
-                                    .foregroundColor(account.netBalance >= 0 ? .green : .red)
+                                    .foregroundColor(account.filteredNetBalance >= 0 ? .green : .red)
                             }
                         }
                     }
@@ -45,7 +47,7 @@ struct ExpensesAccountView: View {
                     VStack(alignment: .leading, spacing: 20) {
                         
                         ForEach(account.budget) { category in
-                            let actualSpent = account.debitsForCategory(category.name)
+                            let actualSpent = account.filteredDebitsForCategory(category.name)
                             BudgetRow(
                                 category: category.name,
                                 currentAmount: actualSpent,
@@ -58,7 +60,7 @@ struct ExpensesAccountView: View {
                             .padding(.vertical, 5)
                         
                         let totalBudget = account.totalBudget
-                        let totalSpent = account.totalDebits
+                        let totalSpent = account.filteredTotalDebits
                         let overallProgress = totalSpent / totalBudget
                         
                         VStack(alignment: .leading, spacing: 8) {
@@ -97,8 +99,24 @@ struct ExpensesAccountView: View {
                         Text("Expenses")
                             .font(.title2.bold())
                         
-                        ForEach(account.debits.sorted { $0.date > $1.date }) { transaction in
-                            TransactionRow(transaction: transaction, isDebit: true)
+                        if account.filteredDebits.isEmpty {
+                            HStack {
+                                Spacer()
+                                VStack(spacing: 8) {
+                                    Image(systemName: "tray")
+                                        .font(.title2)
+                                        .foregroundColor(.secondary)
+                                    Text("No expenses in this period")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                            }
+                            .padding()
+                        } else {
+                            ForEach(account.filteredDebits.sorted { $0.date > $1.date }) { transaction in
+                                TransactionRow(transaction: transaction, isDebit: true)
+                            }
                         }
                         
                         Divider()
@@ -109,7 +127,7 @@ struct ExpensesAccountView: View {
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             Spacer()
-                            Text("₡\(Int(account.totalDebits).formatted())")
+                            Text("₡\(Int(account.filteredTotalDebits).formatted())")
                                 .font(.headline.monospacedDigit())
                                 .fontWeight(.semibold)
                                 .foregroundColor(.red)
@@ -125,8 +143,24 @@ struct ExpensesAccountView: View {
                         Text("Income")
                             .font(.title2.bold())
                         
-                        ForEach(account.credits.sorted { $0.date > $1.date }) { transaction in
-                            TransactionRow(transaction: transaction, isDebit: false)
+                        if account.filteredCredits.isEmpty {
+                            HStack {
+                                Spacer()
+                                VStack(spacing: 8) {
+                                    Image(systemName: "tray")
+                                        .font(.title2)
+                                        .foregroundColor(.secondary)
+                                    Text("No income in this period")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                            }
+                            .padding()
+                        } else {
+                            ForEach(account.filteredCredits.sorted { $0.date > $1.date }) { transaction in
+                                TransactionRow(transaction: transaction, isDebit: false)
+                            }
                         }
                         
                         Divider()
@@ -137,7 +171,7 @@ struct ExpensesAccountView: View {
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             Spacer()
-                            Text("₡\(Int(account.totalCredits).formatted())")
+                            Text("₡\(Int(account.filteredTotalCredits).formatted())")
                                 .font(.headline.monospacedDigit())
                                 .fontWeight(.semibold)
                                 .foregroundColor(.green)
@@ -150,13 +184,24 @@ struct ExpensesAccountView: View {
                 }
             }
             .navigationTitle("Expenses")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showingDatePicker = true
+                    }) {
+                        Image(systemName: "calendar")
+                            .foregroundColor(.primary)
+                    }
+                }
+            }
+            .sheet(isPresented: $showingDatePicker) {
+                DateFilterSheet(selectedFilter: $account.selectedDateFilter)
+            }
         }
     }
     
-    private func getCurrentMonthRange() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
-        return formatter.string(from: Date())
+    private func getDateRangeDisplay() -> String {
+        return account.selectedDateFilter.rawValue
     }
 }
 

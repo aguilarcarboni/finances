@@ -15,6 +15,7 @@ extension NumberFormatter {
 struct SavingsView: View {
     @StateObject private var viewModel = SavingsViewModel()
     @ObservedObject private var savingsAccount = SavingsAccount.shared
+    @State private var showingDatePicker = false
     
     var body: some View {
         NavigationStack {
@@ -33,6 +34,19 @@ struct SavingsView: View {
                 }
             }
             .navigationTitle("Savings")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showingDatePicker = true
+                    }) {
+                        Image(systemName: "calendar")
+                            .foregroundColor(.primary)
+                    }
+                }
+            }
+            .sheet(isPresented: $showingDatePicker) {
+                DateFilterSheet(selectedFilter: $savingsAccount.selectedDateFilter)
+            }
         }
     }
 }
@@ -41,9 +55,14 @@ private extension SavingsView {
     var summaryHeader: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Savings Account")
-                    .font(.headline)
-                    .foregroundColor(.primary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Savings Account")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    Text(savingsAccount.selectedDateFilter.rawValue)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
                 Spacer()
                 // Transfer Validation Status
                 HStack(spacing: 4) {
@@ -60,7 +79,7 @@ private extension SavingsView {
                 Text("Total Balance")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                Text("₡\(Int(savingsAccount.totalSavingsBalance).formatted())")
+                Text("₡\(Int(savingsAccount.filteredSavingsBalance).formatted())")
                     .font(.title2.monospacedDigit())
                     .fontWeight(.bold)
                     .foregroundColor(.green)
@@ -96,7 +115,7 @@ private extension SavingsView {
                         Text("Current")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        Text("₡\(Int(savingsAccount.totalSavingsBalance).formatted())")
+                        Text("₡\(Int(savingsAccount.filteredSavingsBalance).formatted())")
                             .font(.subheadline.monospacedDigit())
                             .fontWeight(.semibold)
                     }

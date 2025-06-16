@@ -5,6 +5,7 @@ import Combine
 class SavingsAccount: ObservableObject, Account {
     
     @Published var transactions: [Transaction] = []
+    @Published var selectedDateFilter: DateFilterType = .oneMonth
     
     static let shared = SavingsAccount()
 
@@ -20,49 +21,136 @@ class SavingsAccount: ObservableObject, Account {
     // Emergency fund is the only "budget" category - others are percentage-based
     @Published var budget: [BudgetCategory] = []
     
+    // MARK: - Filtered Data Properties
+    var filteredTransactions: [Transaction] {
+        let dateRange = selectedDateFilter.dateRange
+        return transactions.filter { transaction in
+            transaction.date >= dateRange.start && transaction.date <= dateRange.end
+        }
+    }
+    
+    var filteredDebits: [Transaction] {
+        filteredTransactions.filter { $0.type == .debit }
+    }
+    
+    var filteredCredits: [Transaction] {
+        filteredTransactions.filter { $0.type == .credit }
+    }
+    
+    var filteredTotalDebits: Double {
+        filteredDebits.reduce(0) { $0 + $1.amount }
+    }
+    
+    var filteredTotalCredits: Double {
+        filteredCredits.reduce(0) { $0 + $1.amount }
+    }
+    
+    var filteredNetBalance: Double {
+        filteredTotalCredits - filteredTotalDebits
+    }
+    
+    func filteredDebitsForCategory(_ categoryName: String) -> Double {
+        filteredDebits.filter { $0.category == categoryName }.reduce(0) { $0 + $1.amount }
+    }
+    
+    func filteredCreditsForCategory(_ categoryName: String) -> Double {
+        filteredCredits.filter { $0.category == categoryName }.reduce(0) { $0 + $1.amount }
+    }
+
     // MARK: - Computed Financial Metrics
     var savingsGrowthData: [(month: String, balance: Double)] {
-        // Get monthly balances for the last 12 months
-        var result: [(month: String, balance: Double)] = []
+        let dateRange = selectedDateFilter.dateRange
         let calendar = Calendar.current
+        var result: [(month: String, balance: Double)] = []
         var runningBalance: Double = 0
         
-        // Sort transactions by date for cumulative calculation
-        let sortedTransactions = transactions.sorted { $0.date < $1.date }
+        // Filter transactions within the selected date range
+        let filteredTransactionsForChart = transactions.filter { transaction in
+            transaction.date >= dateRange.start && transaction.date <= dateRange.end
+        }.sorted { $0.date < $1.date }
         
-        // Get the last 12 months
-        for i in stride(from: 11, through: 0, by: -1) {
-            let monthDate = calendar.date(byAdding: .month, value: -i, to: Date()) ?? Date()
-            let startOfMonth = calendar.dateInterval(of: .month, for: monthDate)?.start ?? monthDate
-            let endOfMonth = calendar.dateInterval(of: .month, for: monthDate)?.end ?? monthDate
-            
-            // Get transactions for this specific month only
-            let monthTransactions = sortedTransactions.filter { transaction in
-                transaction.date >= startOfMonth && transaction.date < endOfMonth
+        // Determine the appropriate time intervals based on the filter
+        let intervals = getTimeIntervals(for: selectedDateFilter, from: dateRange.start, to: dateRange.end)
+        
+        for interval in intervals {
+            // Get transactions for this specific interval
+            let intervalTransactions = filteredTransactionsForChart.filter { transaction in
+                transaction.date >= interval.start && transaction.date < interval.end
             }
             
-            // Calculate net change for this month
-            let monthChange = monthTransactions.reduce(0) { total, transaction in
+            // Calculate net change for this interval
+            let intervalChange = intervalTransactions.reduce(0) { total, transaction in
                 total + (transaction.type == .credit ? transaction.amount : -transaction.amount)
             }
             
             // Add to running balance
-            runningBalance += monthChange
+            runningBalance += intervalChange
             
-            let formatter = DateFormatter()
-            formatter.dateFormat = "MMM yyyy"
-            result.append((month: formatter.string(from: monthDate), balance: max(runningBalance, 0)))
+            result.append((month: interval.label, balance: max(runningBalance, 0)))
         }
         
         return result
+    }
+    
+    private func getTimeIntervals(for filter: DateFilterType, from start: Date, to end: Date) -> [(start: Date, end: Date, label: String)] {
+        let calendar = Calendar.current
+        var intervals: [(start: Date, end: Date, label: String)] = []
+        
+        let formatter = DateFormatter()
+        
+        switch filter {
+        case .threeDays, .oneWeek:
+            formatter.dateFormat = "MMM d"
+            var currentDate = start
+            while currentDate < end {
+                let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? end
+                intervals.append((
+                    start: currentDate,
+                    end: min(nextDate, end),
+                    label: formatter.string(from: currentDate)
+                ))
+                currentDate = nextDate
+            }
+        case .twoWeeks, .oneMonth:
+            formatter.dateFormat = "MMM d"
+            var currentDate = start
+            let intervalDays = selectedDateFilter == .twoWeeks ? 2 : 3
+            while currentDate < end {
+                let nextDate = calendar.date(byAdding: .day, value: intervalDays, to: currentDate) ?? end
+                intervals.append((
+                    start: currentDate,
+                    end: min(nextDate, end),
+                    label: formatter.string(from: currentDate)
+                ))
+                currentDate = nextDate
+            }
+        default:
+            formatter.dateFormat = "MMM yyyy"
+            var currentDate = calendar.dateInterval(of: .month, for: start)?.start ?? start
+            while currentDate < end {
+                let nextDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? end
+                intervals.append((
+                    start: currentDate,
+                    end: min(nextDate, end),
+                    label: formatter.string(from: currentDate)
+                ))
+                currentDate = nextDate
+            }
+        }
+        
+        return intervals
     }
     
     var totalSavingsBalance: Double {
         netBalance // This now comes from all transactions
     }
     
+    var filteredSavingsBalance: Double {
+        filteredNetBalance
+    }
+    
     var emergencyFundProgress: Double {
-        min(totalSavingsBalance / emergencyFundTarget, 1.0)
+        min(filteredSavingsBalance / emergencyFundTarget, 1.0)
     }
     
     var emergencyFundProgressPercentage: Double {
@@ -70,15 +158,15 @@ class SavingsAccount: ObservableObject, Account {
     }
     
     var emergencyFundRemaining: Double {
-        max(emergencyFundTarget - totalSavingsBalance, 0)
+        max(emergencyFundTarget - filteredSavingsBalance, 0)
     }
     
     var isEmergencyFundComplete: Bool {
-        totalSavingsBalance >= emergencyFundTarget
+        filteredSavingsBalance >= emergencyFundTarget
     }
     
     var excessSavings: Double {
-        max(totalSavingsBalance - emergencyFundTarget, 0)
+        max(filteredSavingsBalance - emergencyFundTarget, 0)
     }
     
     var savingsCategories: [(name: String, amount: Double, percentage: Double)] {

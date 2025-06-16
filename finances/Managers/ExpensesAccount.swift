@@ -2,8 +2,48 @@ import SwiftUI
 import Foundation
 import Combine
 
+enum DateFilterType: String, CaseIterable {
+    case threeDays = "3 Days"
+    case oneWeek = "1 Week"
+    case twoWeeks = "2 Weeks"
+    case oneMonth = "1 Month"
+    case threeMonths = "3 Months"
+    case sixMonths = "6 Months"
+    case oneYear = "1 Year"
+    case allTime = "All Time"
+    
+    var dateRange: (start: Date, end: Date) {
+        let calendar = Calendar.current
+        let now = Date()
+        let endDate = now
+        
+        let startDate: Date
+        switch self {
+        case .threeDays:
+            startDate = calendar.date(byAdding: .day, value: -3, to: now) ?? now
+        case .oneWeek:
+            startDate = calendar.date(byAdding: .day, value: -7, to: now) ?? now
+        case .twoWeeks:
+            startDate = calendar.date(byAdding: .day, value: -14, to: now) ?? now
+        case .oneMonth:
+            startDate = calendar.date(byAdding: .month, value: -1, to: now) ?? now
+        case .threeMonths:
+            startDate = calendar.date(byAdding: .month, value: -3, to: now) ?? now
+        case .sixMonths:
+            startDate = calendar.date(byAdding: .month, value: -6, to: now) ?? now
+        case .oneYear:
+            startDate = calendar.date(byAdding: .year, value: -1, to: now) ?? now
+        case .allTime:
+            startDate = Date.distantPast
+        }
+        
+        return (start: startDate, end: endDate)
+    }
+}
+
 class ExpensesAccount: ObservableObject, Account {
     @Published var transactions: [Transaction] = []
+    @Published var selectedDateFilter: DateFilterType = .oneMonth
     
     static let shared = ExpensesAccount()
 
@@ -23,10 +63,10 @@ class ExpensesAccount: ObservableObject, Account {
         budget.first { $0.name == categoryName }?.budget ?? 0
     }   
     
-    // MARK: - Financial Analysis Methods
+    // MARK: - Financial Analysis Methods (Filtered)
     var budgetUtilization: Double {
         guard totalBudget > 0 else { return 0 }
-        return totalDebits / totalBudget
+        return filteredTotalDebits / totalBudget
     }
     
     var budgetUtilizationPercentage: Double {
@@ -34,20 +74,20 @@ class ExpensesAccount: ObservableObject, Account {
     }
     
     var remainingBudget: Double {
-        max(totalBudget - totalDebits, 0)
+        max(totalBudget - filteredTotalDebits, 0)
     }
     
     var isOverBudget: Bool {
-        totalDebits > totalBudget
+        filteredTotalDebits > totalBudget
     }
     
     var budgetOverrun: Double {
-        max(totalDebits - totalBudget, 0)
+        max(filteredTotalDebits - totalBudget, 0)
     }
     
     func categoryBudgetUtilization(_ categoryName: String) -> Double {
         let categoryBudget = budgetForCategory(categoryName)
-        let categorySpent = debitsForCategory(categoryName)
+        let categorySpent = filteredDebitsForCategory(categoryName)
         guard categoryBudget > 0 else { return 0 }
         return categorySpent / categoryBudget
     }
@@ -58,30 +98,81 @@ class ExpensesAccount: ObservableObject, Account {
     
     func categoryRemainingBudget(_ categoryName: String) -> Double {
         let categoryBudget = budgetForCategory(categoryName)
-        let categorySpent = debitsForCategory(categoryName)
+        let categorySpent = filteredDebitsForCategory(categoryName)
         return max(categoryBudget - categorySpent, 0)
     }
     
     func isCategoryOverBudget(_ categoryName: String) -> Bool {
         let categoryBudget = budgetForCategory(categoryName)
-        let categorySpent = debitsForCategory(categoryName)
+        let categorySpent = filteredDebitsForCategory(categoryName)
         return categorySpent > categoryBudget
     }
     
     func categoryBudgetOverrun(_ categoryName: String) -> Double {
         let categoryBudget = budgetForCategory(categoryName)
-        let categorySpent = debitsForCategory(categoryName)
+        let categorySpent = filteredDebitsForCategory(categoryName)
         return max(categorySpent - categoryBudget, 0)
     }
     
+    // MARK: - Filtered Data Properties
+    var filteredTransactions: [Transaction] {
+        let dateRange = selectedDateFilter.dateRange
+        return transactions.filter { transaction in
+            transaction.date >= dateRange.start && transaction.date <= dateRange.end
+        }
+    }
+    
+    var filteredDebits: [Transaction] {
+        filteredTransactions.filter { $0.type == .debit }
+    }
+    
+    var filteredCredits: [Transaction] {
+        filteredTransactions.filter { $0.type == .credit }
+    }
+    
+    var filteredTotalDebits: Double {
+        filteredDebits.reduce(0) { $0 + $1.amount }
+    }
+    
+    var filteredTotalCredits: Double {
+        filteredCredits.reduce(0) { $0 + $1.amount }
+    }
+    
+    var filteredNetBalance: Double {
+        filteredTotalCredits - filteredTotalDebits
+    }
+    
+    func filteredDebitsForCategory(_ categoryName: String) -> Double {
+        filteredDebits.filter { $0.category == categoryName }.reduce(0) { $0 + $1.amount }
+    }
+    
+    func filteredCreditsForCategory(_ categoryName: String) -> Double {
+        filteredCredits.filter { $0.category == categoryName }.reduce(0) { $0 + $1.amount }
+    }
+
     var topSpendingCategories: [(category: String, amount: Double, percentage: Double)] {
-        let categorySummary = getCategorySummary()
-        let totalSpent = totalDebits
+        let categorySummary = getFilteredCategorySummary()
+        let totalSpent = filteredTotalDebits
         
         return categorySummary
             .filter { $0.debits > 0 }
             .map { (category: $0.category, amount: $0.debits, percentage: totalSpent > 0 ? ($0.debits / totalSpent) * 100 : 0) }
             .sorted { $0.amount > $1.amount }
+    }
+    
+    func getFilteredCategorySummary() -> [(category: String, debits: Double, credits: Double, netBalance: Double)] {
+        let categories = Set(filteredTransactions.map { $0.category })
+        
+        return categories.map { category in
+            let categoryDebits = filteredDebitsForCategory(category)
+            let categoryCredits = filteredCreditsForCategory(category)
+            return (
+                category: category,
+                debits: categoryDebits,
+                credits: categoryCredits,
+                netBalance: categoryCredits - categoryDebits
+            )
+        }.sorted { $0.category < $1.category }
     }
     
     var budgetHealthScore: Double {
