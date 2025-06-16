@@ -42,10 +42,10 @@ class AssetsManager: ObservableObject {
         // Mark the house loan as paid off
         var paidOffHouse = house
         paidOffHouse.markLoanAsPaidOff(on: Calendar.current.date(byAdding: .year, value: -2, to: Date()) ?? Date())
-        //addAsset(paidOffHouse)
+        addAsset(paidOffHouse)
         
         // Add the Nissan Magnite car (current loan)
-        let _ = Asset(
+        let car = Asset(
             name: "Nissan Magnite",
             type: "Car",
             category: .tangible,
@@ -59,10 +59,10 @@ class AssetsManager: ObservableObject {
             loanTermYears: 8,
             downPayment: 3090000 // 6,000 USD * 515 CRC
         )
-        //addAsset(car)
+        addAsset(car)
         
         // Add an example business asset (future business loan)
-        let _ = Asset(
+        let business = Asset(
             name: "Tech Consulting Business",
             type: "Business",
             category: .intangible,
@@ -72,10 +72,10 @@ class AssetsManager: ObservableObject {
             customDepreciationRate: 0.08, // 8% annual growth
             expenseCategory: "Business"
         )
-        //addAsset(business)
+        addAsset(business)
         
         // Add an example of intellectual property
-        let _ = Asset(
+        let patent = Asset(
             name: "Software Patent",
             type: "Intellectual Property",
             category: .intangible,
@@ -85,7 +85,7 @@ class AssetsManager: ObservableObject {
             customDepreciationRate: -0.05, // Slow depreciation over time
             expenseCategory: "Research & Development"
         )
-        //addAsset(patent)
+        addAsset(patent)
     }
     
     // MARK: - Portfolio Financial Metrics

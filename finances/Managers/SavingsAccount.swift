@@ -111,31 +111,80 @@ class SavingsAccount: ObservableObject, Account {
     private func setupMockData() {
         // Create calendar and date components
         let calendar = Calendar.current
-        
-        // Add some mock savings transactions over the past few months
         let currentDate = Date()
+        var allTransactions: [Transaction] = []
         
-        transactions = [
-            // Recent savings transfers
-            Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: 50000, type: .credit, date: calendar.date(byAdding: .day, value: -5, to: currentDate)!),
-            Transaction(name: "Emergency Fund Transfer", category: "Emergency Fund", amount: 30000, type: .credit, date: calendar.date(byAdding: .day, value: -15, to: currentDate)!),
+        // Generate savings transactions for the last 8 months to match ExpensesAccount
+        for monthOffset in 0...7 {
+            let monthDate = calendar.date(byAdding: .month, value: -monthOffset, to: currentDate)!
             
-            // Previous month
-            Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: 50000, type: .credit, date: calendar.date(byAdding: .month, value: -1, to: currentDate)!),
-            Transaction(name: "Bonus Savings", category: "Savings", amount: 75000, type: .credit, date: calendar.date(byAdding: .day, value: -35, to: currentDate)!),
+            // Monthly savings transfer (regular savings)
+            let monthlySavingsAmount = Double.random(in: 45000...55000)
+            allTransactions.append(Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: monthlySavingsAmount, type: .credit, date: calendar.date(byAdding: .day, value: Int.random(in: -8...(-2)), to: monthDate)!))
             
-            // 2 months ago
-            Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: 50000, type: .credit, date: calendar.date(byAdding: .month, value: -2, to: currentDate)!),
-            Transaction(name: "Emergency Fund Transfer", category: "Emergency Fund", amount: 40000, type: .credit, date: calendar.date(byAdding: .day, value: -55, to: currentDate)!),
+            // Emergency Fund transfers (not every month)
+            if Bool.random() && monthOffset <= 6 {
+                let emergencyAmount = Double.random(in: 25000...40000)
+                allTransactions.append(Transaction(name: "Emergency Fund Transfer", category: "Emergency Fund", amount: emergencyAmount, type: .credit, date: calendar.date(byAdding: .day, value: Int.random(in: -15...(-3)), to: monthDate)!))
+            }
             
-            // 3 months ago
-            Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: 45000, type: .credit, date: calendar.date(byAdding: .month, value: -3, to: currentDate)!),
+            // Occasional larger savings (bonuses, windfalls, etc.)
+            if monthOffset == 1 {
+                allTransactions.append(Transaction(name: "Bonus Savings", category: "Savings", amount: 75000, type: .credit, date: calendar.date(byAdding: .day, value: -12, to: monthDate)!))
+            }
             
-            // 4 months ago
-            Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: 45000, type: .credit, date: calendar.date(byAdding: .month, value: -4, to: currentDate)!),
-            Transaction(name: "Tax Refund Savings", category: "Savings", amount: 100000, type: .credit, date: calendar.date(byAdding: .day, value: -110, to: currentDate)!),
-        ]
+            if monthOffset == 2 {
+                allTransactions.append(Transaction(name: "Tax Refund Savings", category: "Savings", amount: 85000, type: .credit, date: calendar.date(byAdding: .day, value: -10, to: monthDate)!))
+            }
+            
+            if monthOffset == 3 {
+                allTransactions.append(Transaction(name: "Freelance Project Savings", category: "Savings", amount: 35000, type: .credit, date: calendar.date(byAdding: .day, value: -18, to: monthDate)!))
+            }
+            
+            if monthOffset == 5 {
+                allTransactions.append(Transaction(name: "Investment Profit Savings", category: "Savings", amount: 28000, type: .credit, date: calendar.date(byAdding: .day, value: -22, to: monthDate)!))
+            }
+            
+            if monthOffset == 6 {
+                allTransactions.append(Transaction(name: "Year-end Bonus Savings", category: "Savings", amount: 120000, type: .credit, date: calendar.date(byAdding: .day, value: -8, to: monthDate)!))
+            }
+            
+            // Occasional withdrawals for trips or major purchases (debits)
+            if monthOffset == 4 {
+                allTransactions.append(Transaction(name: "Vacation Fund Withdrawal", category: "Trips", amount: 80000, type: .debit, date: calendar.date(byAdding: .day, value: -15, to: monthDate)!))
+            }
+            
+            if monthOffset == 7 {
+                allTransactions.append(Transaction(name: "Home Improvement Withdrawal", category: "Long term", amount: 45000, type: .debit, date: calendar.date(byAdding: .day, value: -20, to: monthDate)!))
+            }
+            
+            // Additional emergency fund contributions in certain months
+            if monthOffset % 2 == 0 && monthOffset <= 4 {
+                let additionalEmergency = Double.random(in: 15000...25000)
+                allTransactions.append(Transaction(name: "Additional Emergency Fund", category: "Emergency Fund", amount: additionalEmergency, type: .credit, date: calendar.date(byAdding: .day, value: Int.random(in: -25...(-10)), to: monthDate)!))
+            }
+            
+            // Quarterly investment contributions
+            if monthOffset % 3 == 0 {
+                let investmentAmount = Double.random(in: 30000...50000)
+                allTransactions.append(Transaction(name: "Investment Account Transfer", category: "Long term", amount: investmentAmount, type: .credit, date: calendar.date(byAdding: .day, value: Int.random(in: -20...(-5)), to: monthDate)!))
+            }
+            
+            // Special savings goals
+            if monthOffset <= 3 {
+                let goalAmount = Double.random(in: 10000...20000)
+                allTransactions.append(Transaction(name: "Travel Fund", category: "Trips", amount: goalAmount, type: .credit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
+            }
+        }
         
+        // Add some interest earned (small amounts monthly)
+        for monthOffset in 0...7 {
+            let monthDate = calendar.date(byAdding: .month, value: -monthOffset, to: currentDate)!
+            let interestAmount = Double.random(in: 800...1500)
+            allTransactions.append(Transaction(name: "Savings Interest", category: "Interest", amount: interestAmount, type: .credit, date: calendar.date(byAdding: .day, value: -1, to: monthDate)!))
+        }
+        
+        transactions = allTransactions
         // Sort transactions by date (most recent first)
         transactions.sort { $0.date > $1.date }
     }

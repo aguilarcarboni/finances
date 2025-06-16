@@ -211,28 +211,137 @@ class ExpensesAccount: ObservableObject, Account {
     }
     
     private func setupMockData() {
-        // Create calendar and date components
         let calendar = Calendar.current
-        let june15 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 15))!
-        let june16 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 16))!
-        let june17 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 17))!
-        let june18 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 18))!
-        let june19 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 19))!
-        let june20 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 20))!
-        let june21 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 21))!
+        let currentDate = Date()
+        var allTransactions: [Transaction] = []
         
-        transactions = [
-            Transaction(name: "Salary", category: "Income", amount: 198000, type: .credit, date: june15),
-            Transaction(name: "BASIS GOURMET SAN J", category: "Misc", amount: 800, type: .debit, date: june16),
-            Transaction(name: "WALMART ESCAZU", category: "Misc", amount: 3950, type: .debit, date: june17),
-            Transaction(name: "Mesada", category: "Income", amount: 80000, type: .credit, date: june18),
-            Transaction(name: "MCDONALD'S ESCAZU", category: "Misc", amount: 2690, type: .debit, date: june19),
-            Transaction(name: "WALMART ESCAZU", category: "Misc", amount: 1617, type: .debit, date: june20),
-            Transaction(name: "WALMART ESCAZU", category: "Misc", amount: 2650, type: .debit, date: june21),
-            Transaction(name: "PARQUEO AVENIDA ESC", category: "Transportation", amount: 4000, type: .debit, date: june21),
-        ]
+        // Generate transactions for the last 8 months
+        for monthOffset in 0...7 {
+            let monthDate = calendar.date(byAdding: .month, value: -monthOffset, to: currentDate)!
+            
+            // Income (monthly salary + occasional extras)
+            allTransactions.append(Transaction(name: "Salary", category: "Income", amount: Double.random(in: 195000...205000), type: .credit, date: calendar.date(byAdding: .day, value: -5, to: monthDate)!))
+            
+            if monthOffset < 3 && Bool.random() {
+                allTransactions.append(Transaction(name: "Freelance Income", category: "Income", amount: Double.random(in: 40000...60000), type: .credit, date: calendar.date(byAdding: .day, value: Int.random(in: -25...(-1)), to: monthDate)!))
+            }
+            
+            if monthOffset % 3 == 0 {
+                allTransactions.append(Transaction(name: "Investment Dividend", category: "Income", amount: Double.random(in: 12000...18000), type: .credit, date: calendar.date(byAdding: .day, value: Int.random(in: -20...(-5)), to: monthDate)!))
+            }
+            
+            // Monthly recurring expenses
+            // Savings
+            allTransactions.append(Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: Double.random(in: 45000...55000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -8...(-2)), to: monthDate)!))
+            
+            if Bool.random() {
+                allTransactions.append(Transaction(name: "Emergency Fund Transfer", category: "Emergency Fund", amount: Double.random(in: 25000...40000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -15...(-3)), to: monthDate)!))
+            }
+            
+            // Groceries (3-4 times per month)
+            let groceryStores = ["Walmart Escazu", "AutoMercado", "Maxi Pali", "Fresh Market"]
+            for _ in 0...Int.random(in: 2...4) {
+                allTransactions.append(Transaction(name: "Groceries - \(groceryStores.randomElement()!)", category: "Groceries", amount: Double.random(in: 8000...25000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
+            }
+            
+            // Dining (variable frequency)
+            let restaurants = ["McDonald's", "Starbucks", "Olive Garden", "Pizza Hut", "Coffee Shop", "Subway", "KFC", "Burger King"]
+            for _ in 0...Int.random(in: 3...8) {
+                allTransactions.append(Transaction(name: restaurants.randomElement()!, category: "Dining", amount: Double.random(in: 1500...15000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
+            }
+            
+            // Monthly subscriptions
+            if monthOffset <= 1 {
+                allTransactions.append(Transaction(name: "Netflix Subscription", category: "Subscriptions", amount: 3900, type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -10...(-1)), to: monthDate)!))
+                allTransactions.append(Transaction(name: "Spotify Subscription", category: "Subscriptions", amount: 3000, type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -12...(-1)), to: monthDate)!))
+                allTransactions.append(Transaction(name: "Gym Membership", category: "Subscriptions", amount: 15000, type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -15...(-1)), to: monthDate)!))
+            }
+            
+            if monthOffset <= 2 {
+                allTransactions.append(Transaction(name: "Adobe Creative Cloud", category: "Subscriptions", amount: 8500, type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -20...(-1)), to: monthDate)!))
+            }
+            
+            if monthOffset <= 0 {
+                allTransactions.append(Transaction(name: "Amazon Prime", category: "Subscriptions", amount: 4200, type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -25...(-1)), to: monthDate)!))
+            }
+            
+            // Transportation
+            for _ in 0...Int.random(in: 2...5) {
+                let transportTypes = [("Uber Ride", 2500.0...8000.0), ("Taxi Ride", 3000.0...6000.0), ("Parking Fee", 1000.0...4000.0)]
+                let (name, range) = transportTypes.randomElement()!
+                allTransactions.append(Transaction(name: name, category: "Transportation", amount: Double.random(in: range), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
+            }
+            
+            // Gas every 2 weeks
+            for week in [1, 3] {
+                allTransactions.append(Transaction(name: "Gasoline", category: "Transportation", amount: Double.random(in: 15000...22000), type: .debit, date: calendar.date(byAdding: .day, value: -(week * 7), to: monthDate)!))
+            }
+            
+            // Monthly debt payments
+            allTransactions.append(Transaction(name: "Car Loan Payment", category: "Debt", amount: Double.random(in: 10000...15000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -5...(-1)), to: monthDate)!))
+            
+            if monthOffset <= 4 {
+                allTransactions.append(Transaction(name: "Credit Card Payment", category: "Debt", amount: Double.random(in: 35000...55000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -20...(-10)), to: monthDate)!))
+            }
+            
+            if monthOffset <= 6 {
+                allTransactions.append(Transaction(name: "Student Loan Payment", category: "Debt", amount: Double.random(in: 28000...35000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-20)), to: monthDate)!))
+            }
+            
+            // Monthly utilities
+            allTransactions.append(Transaction(name: "Electricity Bill - ICE", category: "Utilities", amount: Double.random(in: 18000...28000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -15...(-5)), to: monthDate)!))
+            allTransactions.append(Transaction(name: "Water Bill - AyA", category: "Utilities", amount: Double.random(in: 6000...12000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -18...(-8)), to: monthDate)!))
+            allTransactions.append(Transaction(name: "Internet - Kolbi", category: "Utilities", amount: Double.random(in: 16000...22000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -12...(-2)), to: monthDate)!))
+            allTransactions.append(Transaction(name: "Mobile Phone Bill", category: "Utilities", amount: Double.random(in: 10000...15000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -25...(-15)), to: monthDate)!))
+            
+            // Quarterly expenses
+            if monthOffset % 3 == 0 {
+                allTransactions.append(Transaction(name: "Car Insurance", category: "Transportation", amount: Double.random(in: 25000...35000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -20...(-5)), to: monthDate)!))
+                allTransactions.append(Transaction(name: "Health Insurance", category: "Healthcare", amount: Double.random(in: 30000...40000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -25...(-10)), to: monthDate)!))
+            }
+            
+            // Occasional expenses
+            if Bool.random() && monthOffset <= 5 {
+                let entertainmentOptions = [("Cinema Tickets", 5000.0...8000.0), ("Concert Tickets", 20000.0...35000.0), ("Theater Show", 15000.0...25000.0)]
+                let (name, range) = entertainmentOptions.randomElement()!
+                allTransactions.append(Transaction(name: name, category: "Entertainment", amount: Double.random(in: range), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
+            }
+            
+            if Bool.random() {
+                let healthcareOptions = [("Doctor Appointment", 20000.0...30000.0), ("Pharmacy - Medications", 6000.0...12000.0), ("Dental Cleaning", 15000.0...25000.0)]
+                let (name, range) = healthcareOptions.randomElement()!
+                allTransactions.append(Transaction(name: name, category: "Healthcare", amount: Double.random(in: range), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
+            }
+            
+            // Shopping (variable)
+            if Bool.random() {
+                let shoppingOptions = [("Amazon Purchase", 10000.0...20000.0), ("Clothing Store", 20000.0...50000.0), ("Electronics", 30000.0...80000.0), ("Household Items", 8000.0...18000.0)]
+                let (name, range) = shoppingOptions.randomElement()!
+                allTransactions.append(Transaction(name: name, category: "Shopping", amount: Double.random(in: range), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
+            }
+            
+            // Miscellaneous
+            let miscOptions = [("Haircut", 6000.0...10000.0), ("Pet Supplies", 8000.0...18000.0), ("Gift", 8000.0...25000.0), ("Bank Fees", 1500.0...3500.0)]
+            if Bool.random() {
+                let (name, range) = miscOptions.randomElement()!
+                allTransactions.append(Transaction(name: name, category: "Misc", amount: Double.random(in: range), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
+            }
+            
+            // Special one-time events
+            if monthOffset == 2 {
+                allTransactions.append(Transaction(name: "Tax Refund Savings", category: "Savings", amount: 85000, type: .debit, date: calendar.date(byAdding: .day, value: -10, to: monthDate)!))
+            }
+            
+            if monthOffset == 4 {
+                allTransactions.append(Transaction(name: "Car Maintenance", category: "Transportation", amount: 45000, type: .debit, date: calendar.date(byAdding: .day, value: -12, to: monthDate)!))
+            }
+            
+            if monthOffset == 6 {
+                allTransactions.append(Transaction(name: "Vacation Expenses", category: "Entertainment", amount: 120000, type: .debit, date: calendar.date(byAdding: .day, value: -8, to: monthDate)!))
+            }
+        }
         
-        // Sort transactions by date (most recent first)
+        transactions = allTransactions
         transactions.sort { $0.date > $1.date }
     }
     
@@ -247,3 +356,4 @@ class ExpensesAccount: ObservableObject, Account {
         transactions.removeAll { $0.id == id }
     }
 }
+
