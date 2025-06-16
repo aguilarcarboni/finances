@@ -4,7 +4,7 @@ import Combine
 class IBKRAPIManager: ObservableObject {
     static let shared = IBKRAPIManager()
     
-    private let baseURL = "http://192.168.1.43:5000"
+    private let baseURL = "http://192.168.1.43:3333"
     private var accessToken: String?
     
     @Published var isConnected = false
