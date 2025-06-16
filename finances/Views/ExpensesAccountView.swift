@@ -6,7 +6,7 @@ struct ExpensesAccountView: View {
     private var account: ExpensesAccount { viewModel.expensesAccount }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 30) {
                     

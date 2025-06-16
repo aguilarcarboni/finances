@@ -5,7 +5,7 @@ struct DashboardView: View {
     @StateObject private var wealthEngine = WealthEngineManager.shared
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 20) {
                     // Net Worth Section

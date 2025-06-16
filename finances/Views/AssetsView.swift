@@ -13,7 +13,7 @@ struct AssetsView: View {
     @State private var selectedAsset: Asset?
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List(assetsManager.assets) { asset in
                 AssetListRow(asset: asset)
                     .onTapGesture {

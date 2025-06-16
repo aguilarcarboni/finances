@@ -13,7 +13,7 @@ struct InvestmentsView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Group {
                 if investmentsAccount.isConnectedToIBKR {
                     // Show comprehensive trading dashboard when connected
