@@ -8,7 +8,7 @@ class SavingsViewModel: ObservableObject {
     // All savings logic is now properly handled in SavingsAccount
     // ViewModel just provides convenient access to the account data
     
-    var savingsGrowthData: [(period: String, balance: Double)] {
+    var savingsGrowthData: [(month: String, balance: Double)] {
         savingsAccount.savingsGrowthData
     }
     

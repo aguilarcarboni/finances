@@ -30,8 +30,8 @@ class WealthEngineManager: ObservableObject {
         // Observe changes in all accounts and recalculate
         Publishers.CombineLatest(
             Publishers.CombineLatest4(
-                expensesAccount.$biweeklyPeriods,
-                savingsAccount.$biweeklyPeriods,
+                expensesAccount.$transactions,
+                savingsAccount.$transactions,
                 investmentsAccount.$_portfolioValue,
                 assetsManager.$assets
             ),
@@ -116,19 +116,23 @@ class WealthEngineManager: ObservableObject {
     
     private func calculateBudgetHealthScore() -> Double {
         // Score based on expense trends and emergency fund
-        let monthlyExpenses = expensesAccount.averageExpensesPerPeriod * 2 // Convert biweekly to monthly
+        let monthlyExpenses = expensesAccount.averageExpensesPerPeriod // This is now monthly from the updated ExpensesAccount
         let emergencyFundMonths = savingsAccount.totalSavingsBalance / max(monthlyExpenses, 1)
         let emergencyScore = min(emergencyFundMonths / 6, 1.0) // Target 6 months
         
         // Calculate expense growth from recent periods
-        let periods = expensesAccount.biweeklyPeriods
         let expenseGrowth: Double
-        if periods.count >= 6 {
-            let recent = periods.suffix(3).map { $0.totalDebits }
-            let older = periods.dropLast(3).suffix(3).map { $0.totalDebits }
-            let recentAvg = recent.reduce(0, +) / Double(recent.count)
-            let olderAvg = older.reduce(0, +) / Double(older.count)
-            expenseGrowth = olderAvg > 0 ? (recentAvg - olderAvg) / olderAvg : 0
+        
+        // Get last 6 months and previous 6 months for comparison
+        let calendar = Calendar.current
+        let sixMonthsAgo = calendar.date(byAdding: .month, value: -6, to: Date()) ?? Date()
+        let twelveMonthsAgo = calendar.date(byAdding: .month, value: -12, to: Date()) ?? Date()
+        
+        let recentExpenses = expensesAccount.totalDebitsForDateRange(from: sixMonthsAgo, to: Date())
+        let olderExpenses = expensesAccount.totalDebitsForDateRange(from: twelveMonthsAgo, to: sixMonthsAgo)
+        
+        if olderExpenses > 0 {
+            expenseGrowth = (recentExpenses - olderExpenses) / olderExpenses
         } else {
             expenseGrowth = 0
         }
@@ -146,9 +150,21 @@ class WealthEngineManager: ObservableObject {
         let savingsRate = accountSummary.totalCredits / totalIncome
         let savingsScore = min(savingsRate / 0.2, 1.0) // Target 20% savings rate
         
-        // Calculate consistency based on regular transfers
-        let recentPeriods = savingsAccount.biweeklyPeriods.suffix(6)
-        let hasConsistentSavings = recentPeriods.filter { $0.totalCredits > 0 }.count >= 4
+        // Calculate consistency based on regular transfers over last 6 months
+        let calendar = Calendar.current
+        let sixMonthsAgo = calendar.date(byAdding: .month, value: -6, to: Date()) ?? Date()
+        let recentSavingsTransactions = savingsAccount.transactionsForDateRange(from: sixMonthsAgo, to: Date())
+        
+        // Check if there are regular savings (at least 4 months with transfers)
+        var monthsWithSavings = Set<String>()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        
+        for transaction in recentSavingsTransactions where transaction.type == .credit {
+            monthsWithSavings.insert(formatter.string(from: transaction.date))
+        }
+        
+        let hasConsistentSavings = monthsWithSavings.count >= 4
         let consistencyScore = hasConsistentSavings ? 1.0 : 0.5
         
         return (savingsScore * 0.7 + consistencyScore * 0.3) * 100
@@ -205,7 +221,7 @@ class WealthEngineManager: ObservableObject {
         }
         
         // Emergency fund recommendations
-        let monthlyExpenses = expensesAccount.averageExpensesPerPeriod * 2 // Convert biweekly to monthly
+        let monthlyExpenses = expensesAccount.averageExpensesPerPeriod // Now monthly
         let emergencyFundMonths = savingsAccount.totalSavingsBalance / max(monthlyExpenses, 1)
         if emergencyFundMonths < 3 {
             newRecommendations.append(FinancialRecommendation(

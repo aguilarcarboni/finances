@@ -3,7 +3,7 @@ import Foundation
 import Combine
 
 class InvestmentsAccount: ObservableObject, Account {
-    @Published var biweeklyPeriods: [BiweeklyPeriod] = []
+    @Published var transactions: [Transaction] = []
     
     static let shared = InvestmentsAccount()
 
@@ -201,52 +201,27 @@ class InvestmentsAccount: ObservableObject, Account {
             allocations[category, default: 0] += value
         }
         
-        // Add cash as a category
-        if summary.totalCashValue > 0 {
-            allocations["Cash"] = summary.totalCashValue
-        }
+        // Add cash allocation
+        allocations["Cash"] = summary.totalCashValue
         
         return allocations.map { (category, value) in
             let percentage = total > 0 ? (value / total) * 100 : 0
             return (category: category, value: value, percentage: percentage)
-        }.sorted { $0.category < $1.category }
+        }.sorted { $0.value > $1.value }
     }
     
-    private func mapSecTypeToCategory(_ secType: String) -> String {
-        switch secType.uppercased() {
-        case "STK":
-            return "Stocks"
-        case "OPT":
-            return "Options"
-        case "FUT":
-            return "Futures"
-        case "BOND", "CORP", "GOVT":
-            return "Bonds"
-        case "ETF":
-            return "ETFs"
-        case "CRYPTO":
-            return "Crypto"
-        default:
-            return "Other"
-        }
-    }
-    
-    var allocationVariance: [(category: String, target: Double, actual: Double, variance: Double)] {
+    // MARK: - Allocation Analysis
+    var allocationAnalysis: [(category: String, current: Double, target: Double, variance: Double)] {
         let currentAllocation = portfolioAllocation
-        
-        return targetAllocation.map { (category, targetPercentage) in
-            let actualPercentage = currentAllocation.first { $0.category == category }?.percentage ?? 0
-            let variance = actualPercentage - (targetPercentage * 100)
-            return (category: category, target: targetPercentage * 100, actual: actualPercentage, variance: variance)
+        return targetAllocation.map { (category, target) in
+            let current = currentAllocation.first { $0.category == category }?.percentage ?? 0
+            let variance = current - (target * 100)
+            return (category: category, current: current, target: target * 100, variance: variance)
         }
     }
     
-    var needsRebalancing: Bool {
-        allocationVariance.contains { abs($0.variance) > 5.0 } // 5% tolerance
-    }
-    
-    var rebalancingRecommendations: [(category: String, action: String, amount: Double)] {
-        return allocationVariance.compactMap { item in
+    var rebalancingOpportunities: [(category: String, action: String, amount: Double)] {
+        return allocationAnalysis.compactMap { item in
             if abs(item.variance) > 5.0 {
                 let action = item.variance > 0 ? "Sell" : "Buy"
                 let amount = abs(item.variance / 100) * portfolioValue
@@ -258,7 +233,7 @@ class InvestmentsAccount: ObservableObject, Account {
     
     private init() {
         // Initialize with empty data - will only be populated when connected to IBKR
-        biweeklyPeriods = []
+        transactions = []
         _portfolioValue = 0
         dayChange = 0
         dayChangePercentage = 0
@@ -288,54 +263,14 @@ class InvestmentsAccount: ObservableObject, Account {
     }
     
     // MARK: - Account Protocol Implementation
-    func addTransaction(_ transaction: Transaction, to periodId: UUID? = nil) {
-        if let periodId = periodId,
-           let periodIndex = biweeklyPeriods.firstIndex(where: { $0.id == periodId }) {
-            var updatedPeriod = biweeklyPeriods[periodIndex]
-            var updatedTransactions = updatedPeriod.transactions
-            updatedTransactions.append(transaction)
-            updatedPeriod = BiweeklyPeriod(
-                startDate: updatedPeriod.startDate,
-                endDate: updatedPeriod.endDate,
-                transactions: updatedTransactions
-            )
-            biweeklyPeriods[periodIndex] = updatedPeriod
-        } else if let currentPeriod = currentPeriod,
-                  let currentIndex = biweeklyPeriods.firstIndex(where: { $0.id == currentPeriod.id }) {
-            var updatedTransactions = currentPeriod.transactions
-            updatedTransactions.append(transaction)
-            let updatedPeriod = BiweeklyPeriod(
-                startDate: currentPeriod.startDate,
-                endDate: currentPeriod.endDate,
-                transactions: updatedTransactions
-            )
-            biweeklyPeriods[currentIndex] = updatedPeriod
-        }
+    func addTransaction(_ transaction: Transaction) {
+        transactions.append(transaction)
+        // Keep transactions sorted by date (most recent first)
+        transactions.sort { $0.date > $1.date }
     }
     
-    func removeTransaction(with id: UUID, from periodId: UUID? = nil) {
-        if let periodId = periodId,
-           let periodIndex = biweeklyPeriods.firstIndex(where: { $0.id == periodId }) {
-            var updatedPeriod = biweeklyPeriods[periodIndex]
-            var updatedTransactions = updatedPeriod.transactions
-            updatedTransactions.removeAll { $0.id == id }
-            updatedPeriod = BiweeklyPeriod(
-                startDate: updatedPeriod.startDate,
-                endDate: updatedPeriod.endDate,
-                transactions: updatedTransactions
-            )
-            biweeklyPeriods[periodIndex] = updatedPeriod
-        } else if var currentPeriod = currentPeriod,
-                  let currentIndex = biweeklyPeriods.firstIndex(where: { $0.id == currentPeriod.id }) {
-            var updatedTransactions = currentPeriod.transactions
-            updatedTransactions.removeAll { $0.id == id }
-            let updatedPeriod = BiweeklyPeriod(
-                startDate: currentPeriod.startDate,
-                endDate: currentPeriod.endDate,
-                transactions: updatedTransactions
-            )
-            biweeklyPeriods[currentIndex] = updatedPeriod
-        }
+    func removeTransaction(with id: UUID) {
+        transactions.removeAll { $0.id == id }
     }
     
     // MARK: - Investment-specific Methods
@@ -401,9 +336,18 @@ class InvestmentsAccount: ObservableObject, Account {
         
         let totalReturn = returnPercentage
         
-        // Simplified annualized return calculation based on current data
-        // For more accurate calculation, we'd need historical data over time
-        let yearsInvested = max(1.0, Double(biweeklyPeriods.count) / 26.0) // 26 biweekly periods per year
+        // Calculate years invested based on earliest transaction date
+        let calendar = Calendar.current
+        let earliestTransaction = transactions.min { $0.date < $1.date }
+        let yearsInvested: Double
+        
+        if let earliest = earliestTransaction {
+            let daysSinceEarliest = calendar.dateComponents([.day], from: earliest.date, to: Date()).day ?? 1
+            yearsInvested = max(1.0, Double(daysSinceEarliest) / 365.25)
+        } else {
+            yearsInvested = 1.0
+        }
+        
         let annualizedReturn = totalReturn > 0 ? pow(1 + (totalReturn / 100), 1 / yearsInvested) - 1 : 0
         
         // Simplified Sharpe ratio using day change as volatility proxy
@@ -431,8 +375,20 @@ class InvestmentsAccount: ObservableObject, Account {
         getDiversificationScore() * 100
     }
     
-    // MARK: - Watchlist Methods
+    // MARK: - Helper Methods
+    private func mapSecTypeToCategory(_ secType: String) -> String {
+        switch secType {
+        case "STK": return "Stocks"
+        case "OPT": return "Options"
+        case "FUT": return "Futures"
+        case "BOND": return "Bonds"
+        case "CASH": return "Cash"
+        case "CRYPTO": return "Crypto"
+        default: return "Other"
+        }
+    }
     
+    // MARK: - Watchlist Methods
     func updateWatchlistPrices() async {
         guard apiManager.isConnected else { return }
         
@@ -455,50 +411,48 @@ class InvestmentsAccount: ObservableObject, Account {
     private func updateWatchlistItem(at index: Int) async {
         guard index < watchlist.count else { return }
         
-        let symbol = watchlist[index].symbol
-        
         do {
+            let symbol = watchlist[index].symbol
             let priceResponse = try await apiManager.getLatestStockPrice(symbol: symbol)
             
             await MainActor.run {
-                let previousPrice = self.watchlist[index].currentPrice
-                self.watchlist[index].currentPrice = priceResponse.latestPrice
-                
-                // Calculate day change if we have a previous price
-                if previousPrice > 0 {
-                    let change = priceResponse.latestPrice - previousPrice
-                    let changePercent = (change / previousPrice) * 100
-                    self.watchlist[index].dayChange = change
-                    self.watchlist[index].dayChangePercent = changePercent
-                } else {
-                    // First time loading, no change data available
-                    self.watchlist[index].dayChange = 0.0
-                    self.watchlist[index].dayChangePercent = 0.0
+                if index < self.watchlist.count {
+                    let previousPrice = self.watchlist[index].currentPrice
+                    self.watchlist[index].currentPrice = priceResponse.latestPrice
+                    
+                    // Calculate day change if we have a previous price
+                    if previousPrice > 0 {
+                        let change = priceResponse.latestPrice - previousPrice
+                        let changePercent = (change / previousPrice) * 100
+                        self.watchlist[index].dayChange = change
+                        self.watchlist[index].dayChangePercent = changePercent
+                    } else {
+                        // First time loading, no change data available
+                        self.watchlist[index].dayChange = 0.0
+                        self.watchlist[index].dayChangePercent = 0.0
+                    }
+                    
+                    self.watchlist[index].lastUpdated = Date()
+                    self.watchlist[index].isLoading = false
+                    self.watchlist[index].error = nil
                 }
-                
-                self.watchlist[index].lastUpdated = Date()
-                self.watchlist[index].isLoading = false
-                self.watchlist[index].error = nil
             }
         } catch {
             await MainActor.run {
-                self.watchlist[index].isLoading = false
-                self.watchlist[index].error = error.localizedDescription
+                if index < self.watchlist.count {
+                    self.watchlist[index].isLoading = false
+                    self.watchlist[index].error = error.localizedDescription
+                }
             }
         }
     }
     
-    func addToWatchlist(symbol: String) {
-        let newItem = WatchlistItem(symbol: symbol.uppercased())
-        if !watchlist.contains(where: { $0.symbol == newItem.symbol }) {
-            watchlist.append(newItem)
-            Task {
-                await updateWatchlistItem(at: watchlist.count - 1)
-            }
-        }
+    func addToWatchlist(_ symbol: String) {
+        guard !watchlist.contains(where: { $0.symbol == symbol }) else { return }
+        watchlist.append(WatchlistItem(symbol: symbol))
     }
     
-    func removeFromWatchlist(symbol: String) {
-        watchlist.removeAll { $0.symbol == symbol.uppercased() }
+    func removeFromWatchlist(_ symbol: String) {
+        watchlist.removeAll { $0.symbol == symbol }
     }
 } 

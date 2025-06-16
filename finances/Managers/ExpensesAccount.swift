@@ -3,7 +3,7 @@ import Foundation
 import Combine
 
 class ExpensesAccount: ObservableObject, Account {
-    @Published var biweeklyPeriods: [BiweeklyPeriod] = []
+    @Published var transactions: [Transaction] = []
     
     static let shared = ExpensesAccount()
 
@@ -101,13 +101,17 @@ class ExpensesAccount: ObservableObject, Account {
     
     // MARK: - Income Analysis
     var averageIncomePerPeriod: Double {
-        guard !biweeklyPeriods.isEmpty else { return 0 }
-        return totalCredits / Double(biweeklyPeriods.count)
+        // Calculate average income per month (30 days)
+        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+        let recentCredits = totalCreditsForDateRange(from: thirtyDaysAgo, to: Date())
+        return recentCredits
     }
     
     var averageExpensesPerPeriod: Double {
-        guard !biweeklyPeriods.isEmpty else { return 0 }
-        return totalDebits / Double(biweeklyPeriods.count)
+        // Calculate average expenses per month (30 days)
+        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+        let recentDebits = totalDebitsForDateRange(from: thirtyDaysAgo, to: Date())
+        return recentDebits
     }
     
     var savingsRate: Double {
@@ -130,21 +134,59 @@ class ExpensesAccount: ObservableObject, Account {
     
     // MARK: - Trend Analysis
     func getSpendingTrend() -> [(period: String, amount: Double)] {
-        return biweeklyPeriods.map { period in
-            (period: period.dateRange, amount: period.totalDebits)
+        // Get spending by month for the last 12 months
+        var result: [(period: String, amount: Double)] = []
+        let calendar = Calendar.current
+        
+        for i in 0..<12 {
+            let monthDate = calendar.date(byAdding: .month, value: -i, to: Date()) ?? Date()
+            let monthTransactions = transactionsForMonth(monthDate)
+            let monthDebits = monthTransactions.filter { $0.type == .debit }.reduce(0) { $0 + $1.amount }
+            
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM yyyy"
+            result.append((period: formatter.string(from: monthDate), amount: monthDebits))
         }
+        
+        return result.reversed() // Most recent last
     }
     
     func getIncomeTrend() -> [(period: String, amount: Double)] {
-        return biweeklyPeriods.map { period in
-            (period: period.dateRange, amount: period.totalCredits)
+        // Get income by month for the last 12 months
+        var result: [(period: String, amount: Double)] = []
+        let calendar = Calendar.current
+        
+        for i in 0..<12 {
+            let monthDate = calendar.date(byAdding: .month, value: -i, to: Date()) ?? Date()
+            let monthTransactions = transactionsForMonth(monthDate)
+            let monthCredits = monthTransactions.filter { $0.type == .credit }.reduce(0) { $0 + $1.amount }
+            
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM yyyy"
+            result.append((period: formatter.string(from: monthDate), amount: monthCredits))
         }
+        
+        return result.reversed() // Most recent last
     }
     
     func getCategoryTrend(for categoryName: String) -> [(period: String, amount: Double)] {
-        return biweeklyPeriods.map { period in
-            (period: period.dateRange, amount: period.debitsForCategory(categoryName))
+        // Get category spending by month for the last 12 months
+        var result: [(period: String, amount: Double)] = []
+        let calendar = Calendar.current
+        
+        for i in 0..<12 {
+            let monthDate = calendar.date(byAdding: .month, value: -i, to: Date()) ?? Date()
+            let monthTransactions = transactionsForMonth(monthDate)
+            let categoryAmount = monthTransactions
+                .filter { $0.category == categoryName && $0.type == .debit }
+                .reduce(0) { $0 + $1.amount }
+            
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM yyyy"
+            result.append((period: formatter.string(from: monthDate), amount: categoryAmount))
         }
+        
+        return result.reversed() // Most recent last
     }
     
     // MARK: - Budget Management
@@ -172,73 +214,36 @@ class ExpensesAccount: ObservableObject, Account {
         // Create calendar and date components
         let calendar = Calendar.current
         let june15 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 15))!
-        let june30 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 30))!
+        let june16 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 16))!
+        let june17 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 17))!
+        let june18 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 18))!
+        let june19 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 19))!
+        let june20 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 20))!
+        let june21 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 21))!
         
-        let q2JuneTransactions = [
+        transactions = [
             Transaction(name: "Salary", category: "Income", amount: 198000, type: .credit, date: june15),
-            Transaction(name: "BASIS GOURMET SAN J", category: "Misc", amount: 800, type: .debit, date: june15),
-            Transaction(name: "WALMART ESCAZU", category: "Misc", amount: 3950, type: .debit, date: june15),
-            Transaction(name: "Mesada", category: "Income", amount: 80000, type: .credit, date: june15),
-            Transaction(name: "MCDONALD'S ESCAZU", category: "Misc", amount: 2690, type: .debit, date: june15),
-            Transaction(name: "WALMART ESCAZU", category: "Misc", amount: 1617, type: .debit, date: june15),
-            Transaction(name: "WALMART ESCAZU", category: "Misc", amount: 2650, type: .debit, date: june15),
-            Transaction(name: "PARQUEO AVENIDA ESC", category: "Transportation", amount: 4000, type: .debit, date: june15),
-
+            Transaction(name: "BASIS GOURMET SAN J", category: "Misc", amount: 800, type: .debit, date: june16),
+            Transaction(name: "WALMART ESCAZU", category: "Misc", amount: 3950, type: .debit, date: june17),
+            Transaction(name: "Mesada", category: "Income", amount: 80000, type: .credit, date: june18),
+            Transaction(name: "MCDONALD'S ESCAZU", category: "Misc", amount: 2690, type: .debit, date: june19),
+            Transaction(name: "WALMART ESCAZU", category: "Misc", amount: 1617, type: .debit, date: june20),
+            Transaction(name: "WALMART ESCAZU", category: "Misc", amount: 2650, type: .debit, date: june21),
+            Transaction(name: "PARQUEO AVENIDA ESC", category: "Transportation", amount: 4000, type: .debit, date: june21),
         ]
         
-        biweeklyPeriods = [
-            BiweeklyPeriod(startDate: june15, endDate: june30, transactions: q2JuneTransactions),
-        ]
+        // Sort transactions by date (most recent first)
+        transactions.sort { $0.date > $1.date }
     }
     
     // MARK: - Account Protocol Implementation
-    func addTransaction(_ transaction: Transaction, to periodId: UUID? = nil) {
-        if let periodId = periodId,
-           let periodIndex = biweeklyPeriods.firstIndex(where: { $0.id == periodId }) {
-            var updatedPeriod = biweeklyPeriods[periodIndex]
-            var updatedTransactions = updatedPeriod.transactions
-            updatedTransactions.append(transaction)
-            updatedPeriod = BiweeklyPeriod(
-                startDate: updatedPeriod.startDate,
-                endDate: updatedPeriod.endDate,
-                transactions: updatedTransactions
-            )
-            biweeklyPeriods[periodIndex] = updatedPeriod
-        } else if var currentPeriod = currentPeriod,
-                  let currentIndex = biweeklyPeriods.firstIndex(where: { $0.id == currentPeriod.id }) {
-            var updatedTransactions = currentPeriod.transactions
-            updatedTransactions.append(transaction)
-            let updatedPeriod = BiweeklyPeriod(
-                startDate: currentPeriod.startDate,
-                endDate: currentPeriod.endDate,
-                transactions: updatedTransactions
-            )
-            biweeklyPeriods[currentIndex] = updatedPeriod
-        }
+    func addTransaction(_ transaction: Transaction) {
+        transactions.append(transaction)
+        // Keep transactions sorted by date (most recent first)
+        transactions.sort { $0.date > $1.date }
     }
     
-    func removeTransaction(with id: UUID, from periodId: UUID? = nil) {
-        if let periodId = periodId,
-           let periodIndex = biweeklyPeriods.firstIndex(where: { $0.id == periodId }) {
-            var updatedPeriod = biweeklyPeriods[periodIndex]
-            var updatedTransactions = updatedPeriod.transactions
-            updatedTransactions.removeAll { $0.id == id }
-            updatedPeriod = BiweeklyPeriod(
-                startDate: updatedPeriod.startDate,
-                endDate: updatedPeriod.endDate,
-                transactions: updatedTransactions
-            )
-            biweeklyPeriods[periodIndex] = updatedPeriod
-        } else if var currentPeriod = currentPeriod,
-                  let currentIndex = biweeklyPeriods.firstIndex(where: { $0.id == currentPeriod.id }) {
-            var updatedTransactions = currentPeriod.transactions
-            updatedTransactions.removeAll { $0.id == id }
-            let updatedPeriod = BiweeklyPeriod(
-                startDate: currentPeriod.startDate,
-                endDate: currentPeriod.endDate,
-                transactions: updatedTransactions
-            )
-            biweeklyPeriods[currentIndex] = updatedPeriod
-        }
+    func removeTransaction(with id: UUID) {
+        transactions.removeAll { $0.id == id }
     }
 }

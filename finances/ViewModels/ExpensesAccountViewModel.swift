@@ -8,7 +8,7 @@ class ExpensesAccountViewModel: ObservableObject {
     
     init() {
         // Observe changes and update wealth engine calculations
-        expensesAccount.$biweeklyPeriods
+        expensesAccount.$transactions
             .sink { _ in
                 // The wealth engine will automatically recalculate when it observes changes
             }
@@ -20,24 +20,20 @@ class ExpensesAccountViewModel: ObservableObject {
     }
     
     var monthlyAverage: Double {
-        expensesAccount.averageExpensesPerPeriod * 2 // Convert biweekly to monthly
+        expensesAccount.averageExpensesPerPeriod // Now returns monthly average
     }
     
     var expenseGrowthRate: Double {
-        // Calculate growth rate from recent periods
-        let periods = expensesAccount.biweeklyPeriods
-        guard periods.count >= 2 else { return 0 }
+        // Calculate growth rate from recent periods using date-based filtering
+        let calendar = Calendar.current
+        let threeMonthsAgo = calendar.date(byAdding: .month, value: -3, to: Date()) ?? Date()
+        let sixMonthsAgo = calendar.date(byAdding: .month, value: -6, to: Date()) ?? Date()
         
-        let recent = periods.suffix(3).map { $0.totalDebits }
-        let older = periods.dropLast(3).suffix(3).map { $0.totalDebits }
+        let recentExpenses = expensesAccount.totalDebitsForDateRange(from: threeMonthsAgo, to: Date())
+        let olderExpenses = expensesAccount.totalDebitsForDateRange(from: sixMonthsAgo, to: threeMonthsAgo)
         
-        guard !recent.isEmpty && !older.isEmpty else { return 0 }
-        
-        let recentAvg = recent.reduce(0, +) / Double(recent.count)
-        let olderAvg = older.reduce(0, +) / Double(older.count)
-        
-        guard olderAvg > 0 else { return 0 }
-        return (recentAvg - olderAvg) / olderAvg
+        guard olderExpenses > 0 else { return 0 }
+        return (recentExpenses - olderExpenses) / olderExpenses
     }
     
     var emergencyFundMonths: Double {

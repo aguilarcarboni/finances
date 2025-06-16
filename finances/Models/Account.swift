@@ -3,11 +3,9 @@ import Foundation
 import Combine
 
 protocol Account: ObservableObject {
-    var biweeklyPeriods: [BiweeklyPeriod] { get set }
+    var transactions: [Transaction] { get set }
     var budget: [BudgetCategory] { get set }
     var totalBudget: Double { get }
-    var currentPeriod: BiweeklyPeriod? { get }
-    var transactions: [Transaction] { get }
     var debits: [Transaction] { get }
     var credits: [Transaction] { get }
     var totalDebits: Double { get }
@@ -19,13 +17,18 @@ protocol Account: ObservableObject {
     func debitsForCategory(_ categoryName: String) -> Double
     func creditsForCategory(_ categoryName: String) -> Double
     func netForCategory(_ categoryName: String) -> Double
-    func addPeriod(_ period: BiweeklyPeriod)
-    func getCurrentBiweeklyPeriod() -> (start: Date, end: Date)
-    func addTransaction(_ transaction: Transaction, to periodId: UUID?)
-    func removeTransaction(with id: UUID, from periodId: UUID?)
-    func validateDoubleEntry(for periodId: UUID?) -> Bool
+    func addTransaction(_ transaction: Transaction)
+    func removeTransaction(with id: UUID)
     func getAccountSummary() -> (totalDebits: Double, totalCredits: Double, netBalance: Double)
     func getCategorySummary() -> [(category: String, debits: Double, credits: Double, net: Double)]
+    
+    // Date-based filtering methods
+    func transactionsForDateRange(from startDate: Date, to endDate: Date) -> [Transaction]
+    func transactionsForMonth(_ date: Date) -> [Transaction]
+    func transactionsForWeek(_ date: Date) -> [Transaction]
+    func transactionsForCurrentMonth() -> [Transaction]
+    func transactionsForCurrentWeek() -> [Transaction]
+    func transactionsForLast30Days() -> [Transaction]
 }
 
 // MARK: - Default implementations
@@ -38,89 +41,49 @@ extension Account {
         budget.first { $0.name == categoryName }?.budget ?? 0
     }
     
-    var currentPeriod: BiweeklyPeriod? {
-        let today = Date()
-        return biweeklyPeriods.first { period in
-            today >= period.startDate && today <= period.endDate
-        } ?? biweeklyPeriods.last
-    }
-    
-    var transactions: [Transaction] {
-        currentPeriod?.transactions ?? []
-    }
-    
     var debits: [Transaction] {
-        currentPeriod?.debits ?? []
+        transactions.filter { $0.type == .debit }
     }
     
     var credits: [Transaction] {
-        currentPeriod?.credits ?? []
+        transactions.filter { $0.type == .credit }
     }
     
     var totalDebits: Double {
-        currentPeriod?.totalDebits ?? 0
+        debits.reduce(0) { $0 + $1.amount }
     }
     
     var totalCredits: Double {
-        currentPeriod?.totalCredits ?? 0
+        credits.reduce(0) { $0 + $1.amount }
     }
     
     var netBalance: Double {
-        currentPeriod?.netBalance ?? 0
+        totalCredits - totalDebits
     }
     
     func transactionsForCategory(_ categoryName: String) -> [Transaction] {
-        currentPeriod?.transactionsForCategory(categoryName) ?? []
+        transactions.filter { $0.category == categoryName }
     }
     
     func debitsForCategory(_ categoryName: String) -> Double {
-        currentPeriod?.debitsForCategory(categoryName) ?? 0
+        transactions
+            .filter { $0.category == categoryName && $0.type == .debit }
+            .reduce(0) { $0 + $1.amount }
     }
     
     func creditsForCategory(_ categoryName: String) -> Double {
-        currentPeriod?.creditsForCategory(categoryName) ?? 0
+        transactions
+            .filter { $0.category == categoryName && $0.type == .credit }
+            .reduce(0) { $0 + $1.amount }
     }
     
     func netForCategory(_ categoryName: String) -> Double {
-        currentPeriod?.netForCategory(categoryName) ?? 0
-    }
-    
-    func addPeriod(_ period: BiweeklyPeriod) {
-        biweeklyPeriods.append(period)
-        biweeklyPeriods.sort { $0.startDate < $1.startDate }
-    }
-    
-    func getCurrentBiweeklyPeriod() -> (start: Date, end: Date) {
-        let today = Date()
-        let calendar = Calendar.current
-        
-        let dayOfMonth = calendar.component(.day, from: today)
-        let year = calendar.component(.year, from: today)
-        let month = calendar.component(.month, from: today)
-        
-        if dayOfMonth <= 15 {
-            let startDate = calendar.date(from: DateComponents(year: year, month: month, day: 1))!
-            let endDate = calendar.date(from: DateComponents(year: year, month: month, day: 15))!
-            return (startDate, endDate)
-        } else {
-            let startDate = calendar.date(from: DateComponents(year: year, month: month, day: 16))!
-            let endDate = calendar.date(from: DateComponents(year: year, month: month + 1, day: 0))!
-            return (startDate, endDate)
-        }
-    }
-    
-    func validateDoubleEntry(for periodId: UUID? = nil) -> Bool {
-        let period = periodId != nil 
-            ? biweeklyPeriods.first { $0.id == periodId }
-            : currentPeriod
-        
-        guard let period = period else { return false }
-        return period.totalDebits > 0 && period.totalCredits > 0
+        creditsForCategory(categoryName) - debitsForCategory(categoryName)
     }
     
     func getAccountSummary() -> (totalDebits: Double, totalCredits: Double, netBalance: Double) {
-        let allDebits = biweeklyPeriods.reduce(0) { $0 + $1.totalDebits }
-        let allCredits = biweeklyPeriods.reduce(0) { $0 + $1.totalCredits }
+        let allDebits = totalDebits
+        let allCredits = totalCredits
         let netBalance = allCredits - allDebits
         
         return (allDebits, allCredits, netBalance)
@@ -129,22 +92,72 @@ extension Account {
     func getCategorySummary() -> [(category: String, debits: Double, credits: Double, net: Double)] {
         var categoryTotals: [String: (debits: Double, credits: Double)] = [:]
         
-        for period in biweeklyPeriods {
-            for transaction in period.transactions {
-                if categoryTotals[transaction.category] == nil {
-                    categoryTotals[transaction.category] = (0, 0)
-                }
-                
-                if transaction.type == .debit {
-                    categoryTotals[transaction.category]?.debits += transaction.amount
-                } else {
-                    categoryTotals[transaction.category]?.credits += transaction.amount
-                }
+        for transaction in transactions {
+            if categoryTotals[transaction.category] == nil {
+                categoryTotals[transaction.category] = (0, 0)
+            }
+            
+            if transaction.type == .debit {
+                categoryTotals[transaction.category]?.debits += transaction.amount
+            } else {
+                categoryTotals[transaction.category]?.credits += transaction.amount
             }
         }
         
         return categoryTotals.map { (category, totals) in
             (category: category, debits: totals.debits, credits: totals.credits, net: totals.credits - totals.debits)
         }.sorted { $0.category < $1.category }
+    }
+    
+    // MARK: - Date-based filtering implementations
+    func transactionsForDateRange(from startDate: Date, to endDate: Date) -> [Transaction] {
+        return transactions.filter { transaction in
+            transaction.date >= startDate && transaction.date <= endDate
+        }.sorted { $0.date > $1.date } // Most recent first
+    }
+    
+    func transactionsForMonth(_ date: Date) -> [Transaction] {
+        let calendar = Calendar.current
+        let startOfMonth = calendar.dateInterval(of: .month, for: date)?.start ?? date
+        let endOfMonth = calendar.dateInterval(of: .month, for: date)?.end ?? date
+        return transactionsForDateRange(from: startOfMonth, to: endOfMonth)
+    }
+    
+    func transactionsForWeek(_ date: Date) -> [Transaction] {
+        let calendar = Calendar.current
+        let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? date
+        let endOfWeek = calendar.dateInterval(of: .weekOfYear, for: date)?.end ?? date
+        return transactionsForDateRange(from: startOfWeek, to: endOfWeek)
+    }
+    
+    func transactionsForCurrentMonth() -> [Transaction] {
+        return transactionsForMonth(Date())
+    }
+    
+    func transactionsForCurrentWeek() -> [Transaction] {
+        return transactionsForWeek(Date())
+    }
+    
+    func transactionsForLast30Days() -> [Transaction] {
+        let calendar = Calendar.current
+        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+        return transactionsForDateRange(from: thirtyDaysAgo, to: Date())
+    }
+    
+    // Helper methods for date-based calculations
+    func totalDebitsForDateRange(from startDate: Date, to endDate: Date) -> Double {
+        return transactionsForDateRange(from: startDate, to: endDate)
+            .filter { $0.type == .debit }
+            .reduce(0) { $0 + $1.amount }
+    }
+    
+    func totalCreditsForDateRange(from startDate: Date, to endDate: Date) -> Double {
+        return transactionsForDateRange(from: startDate, to: endDate)
+            .filter { $0.type == .credit }
+            .reduce(0) { $0 + $1.amount }
+    }
+    
+    func netBalanceForDateRange(from startDate: Date, to endDate: Date) -> Double {
+        return totalCreditsForDateRange(from: startDate, to: endDate) - totalDebitsForDateRange(from: startDate, to: endDate)
     }
 } 

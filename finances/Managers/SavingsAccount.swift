@@ -3,7 +3,8 @@ import Foundation
 import Combine
 
 class SavingsAccount: ObservableObject, Account {
-    @Published var biweeklyPeriods: [BiweeklyPeriod] = []
+    
+    @Published var transactions: [Transaction] = []
     
     static let shared = SavingsAccount()
 
@@ -20,16 +21,44 @@ class SavingsAccount: ObservableObject, Account {
     @Published var budget: [BudgetCategory] = []
     
     // MARK: - Computed Financial Metrics
-    var savingsGrowthData: [(period: String, balance: Double)] {
+    var savingsGrowthData: [(month: String, balance: Double)] {
+        // Get monthly balances for the last 12 months
+        var result: [(month: String, balance: Double)] = []
+        let calendar = Calendar.current
         var runningBalance: Double = 0
-        return biweeklyPeriods.map { period in
-            runningBalance += period.netBalance
-            return (period: period.dateRange, balance: runningBalance)
+        
+        // Sort transactions by date for cumulative calculation
+        let sortedTransactions = transactions.sorted { $0.date < $1.date }
+        
+        // Get the last 12 months
+        for i in stride(from: 11, through: 0, by: -1) {
+            let monthDate = calendar.date(byAdding: .month, value: -i, to: Date()) ?? Date()
+            let startOfMonth = calendar.dateInterval(of: .month, for: monthDate)?.start ?? monthDate
+            let endOfMonth = calendar.dateInterval(of: .month, for: monthDate)?.end ?? monthDate
+            
+            // Get transactions for this specific month only
+            let monthTransactions = sortedTransactions.filter { transaction in
+                transaction.date >= startOfMonth && transaction.date < endOfMonth
+            }
+            
+            // Calculate net change for this month
+            let monthChange = monthTransactions.reduce(0) { total, transaction in
+                total + (transaction.type == .credit ? transaction.amount : -transaction.amount)
+            }
+            
+            // Add to running balance
+            runningBalance += monthChange
+            
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM yyyy"
+            result.append((month: formatter.string(from: monthDate), balance: max(runningBalance, 0)))
         }
+        
+        return result
     }
     
     var totalSavingsBalance: Double {
-        savingsGrowthData.last?.balance ?? 0
+        netBalance // This now comes from all transactions
     }
     
     var emergencyFundProgress: Double {
@@ -80,68 +109,46 @@ class SavingsAccount: ObservableObject, Account {
     }
     
     private func setupMockData() {
-
         // Create calendar and date components
         let calendar = Calendar.current
-        let june15 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 15))!
-        let june30 = calendar.date(from: DateComponents(year: 2024, month: 6, day: 30))!
-
-        let q2JuneTransactions: [Transaction] = []
         
-        biweeklyPeriods = [
-            BiweeklyPeriod(startDate: june15, endDate: june30, transactions: q2JuneTransactions),
+        // Add some mock savings transactions over the past few months
+        let currentDate = Date()
+        
+        transactions = [
+            // Recent savings transfers
+            Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: 50000, type: .credit, date: calendar.date(byAdding: .day, value: -5, to: currentDate)!),
+            Transaction(name: "Emergency Fund Transfer", category: "Emergency Fund", amount: 30000, type: .credit, date: calendar.date(byAdding: .day, value: -15, to: currentDate)!),
+            
+            // Previous month
+            Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: 50000, type: .credit, date: calendar.date(byAdding: .month, value: -1, to: currentDate)!),
+            Transaction(name: "Bonus Savings", category: "Savings", amount: 75000, type: .credit, date: calendar.date(byAdding: .day, value: -35, to: currentDate)!),
+            
+            // 2 months ago
+            Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: 50000, type: .credit, date: calendar.date(byAdding: .month, value: -2, to: currentDate)!),
+            Transaction(name: "Emergency Fund Transfer", category: "Emergency Fund", amount: 40000, type: .credit, date: calendar.date(byAdding: .day, value: -55, to: currentDate)!),
+            
+            // 3 months ago
+            Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: 45000, type: .credit, date: calendar.date(byAdding: .month, value: -3, to: currentDate)!),
+            
+            // 4 months ago
+            Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: 45000, type: .credit, date: calendar.date(byAdding: .month, value: -4, to: currentDate)!),
+            Transaction(name: "Tax Refund Savings", category: "Savings", amount: 100000, type: .credit, date: calendar.date(byAdding: .day, value: -110, to: currentDate)!),
         ]
+        
+        // Sort transactions by date (most recent first)
+        transactions.sort { $0.date > $1.date }
     }
     
     // MARK: - Account Protocol Implementation
-    func addTransaction(_ transaction: Transaction, to periodId: UUID? = nil) {
-        if let periodId = periodId,
-           let periodIndex = biweeklyPeriods.firstIndex(where: { $0.id == periodId }) {
-            var updatedPeriod = biweeklyPeriods[periodIndex]
-            var updatedTransactions = updatedPeriod.transactions
-            updatedTransactions.append(transaction)
-            updatedPeriod = BiweeklyPeriod(
-                startDate: updatedPeriod.startDate,
-                endDate: updatedPeriod.endDate,
-                transactions: updatedTransactions
-            )
-            biweeklyPeriods[periodIndex] = updatedPeriod
-        } else if var currentPeriod = currentPeriod,
-                  let currentIndex = biweeklyPeriods.firstIndex(where: { $0.id == currentPeriod.id }) {
-            var updatedTransactions = currentPeriod.transactions
-            updatedTransactions.append(transaction)
-            let updatedPeriod = BiweeklyPeriod(
-                startDate: currentPeriod.startDate,
-                endDate: currentPeriod.endDate,
-                transactions: updatedTransactions
-            )
-            biweeklyPeriods[currentIndex] = updatedPeriod
-        }
+    func addTransaction(_ transaction: Transaction) {
+        transactions.append(transaction)
+        // Keep transactions sorted by date (most recent first)
+        transactions.sort { $0.date > $1.date }
     }
     
-    func removeTransaction(with id: UUID, from periodId: UUID? = nil) {
-        if let periodId = periodId,
-           let periodIndex = biweeklyPeriods.firstIndex(where: { $0.id == periodId }) {
-            var updatedPeriod = biweeklyPeriods[periodIndex]
-            var updatedTransactions = updatedPeriod.transactions
-            updatedTransactions.removeAll { $0.id == id }
-            updatedPeriod = BiweeklyPeriod(
-                startDate: updatedPeriod.startDate,
-                endDate: updatedPeriod.endDate,
-                transactions: updatedTransactions
-            )
-            biweeklyPeriods[periodIndex] = updatedPeriod
-        } else if var currentPeriod = currentPeriod,
-                  let currentIndex = biweeklyPeriods.firstIndex(where: { $0.id == currentPeriod.id }) {
-            var updatedTransactions = currentPeriod.transactions
-            updatedTransactions.removeAll { $0.id == id }
-            let updatedPeriod = BiweeklyPeriod(
-                startDate: currentPeriod.startDate,
-                endDate: currentPeriod.endDate,
-                transactions: updatedTransactions
-            )
-            biweeklyPeriods[currentIndex] = updatedPeriod
-        }
+    func removeTransaction(with id: UUID) {
+        transactions.removeAll { $0.id == id }
     }
     
     // MARK: - Savings-specific Methods
@@ -152,13 +159,8 @@ class SavingsAccount: ObservableObject, Account {
     
     // MARK: - Transfer Validation
     func validateTransfersWithExpenses(_ expensesAccount: ExpensesAccount) -> (isValid: Bool, message: String) {
-        let expensesSavingsTransfers = expensesAccount.biweeklyPeriods.reduce(0.0) { total, period in
-            total + period.debitsForCategory("Savings")
-        }
-        
-        let savingsIncomingTransfers = biweeklyPeriods.reduce(0.0) { total, period in
-            total + period.creditsForCategory("Savings") // All savings come in as generic "Savings"
-        }
+        let expensesSavingsTransfers = expensesAccount.debitsForCategory("Savings")
+        let savingsIncomingTransfers = creditsForCategory("Savings") // All savings come in as generic "Savings"
         
         let isValid = abs(expensesSavingsTransfers - savingsIncomingTransfers) < 1.0 // Allow for rounding
         let message = isValid 

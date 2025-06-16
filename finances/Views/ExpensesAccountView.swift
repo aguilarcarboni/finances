@@ -10,38 +10,36 @@ struct ExpensesAccountView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 30) {
                     
-                    // Current Period Header
-                    if let currentPeriod = account.currentPeriod {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("Expenses Account")
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
-                                Spacer()
-                                Text(currentPeriod.dateRange)
-                                    .font(.headline)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.primary)
-                            }
-                            
-                            // Account Balance Summary
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Account Balance")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    Text("₡\(Int(account.netBalance).formatted())")
-                                        .font(.title2.monospacedDigit())
-                                        .fontWeight(.bold)
-                                        .foregroundColor(account.netBalance >= 0 ? .green : .red)
-                                }
+                    // Current Month Header
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Expenses Account")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Text(getCurrentMonthRange())
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                        }
+                        
+                        // Account Balance Summary
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Account Balance")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("₡\(Int(account.netBalance).formatted())")
+                                    .font(.title2.monospacedDigit())
+                                    .fontWeight(.bold)
+                                    .foregroundColor(account.netBalance >= 0 ? .green : .red)
                             }
                         }
-                        .padding()
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(12)
-                        .padding(.horizontal)
                     }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
 
                     // Budget vs Actual Section
                     VStack(alignment: .leading, spacing: 20) {
@@ -153,6 +151,12 @@ struct ExpensesAccountView: View {
             }
             .navigationTitle("Expenses")
         }
+    }
+    
+    private func getCurrentMonthRange() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: Date())
     }
 }
 
