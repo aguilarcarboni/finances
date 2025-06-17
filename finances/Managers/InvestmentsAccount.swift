@@ -390,7 +390,14 @@ class InvestmentsAccount: ObservableObject, Account {
     
     // MARK: - Watchlist Methods
     func updateWatchlistPrices() async {
-        guard apiManager.isConnected else { return }
+        print("🔍 InvestmentsAccount: Starting watchlist price update")
+        
+        guard apiManager.isConnected else { 
+            print("❌ InvestmentsAccount: API manager not connected")
+            return 
+        }
+        
+        print("📊 InvestmentsAccount: Updating prices for \(watchlist.count) symbols: \(watchlist.map { $0.symbol }.joined(separator: ", "))")
         
         await MainActor.run {
             for i in 0..<watchlist.count {
@@ -406,14 +413,22 @@ class InvestmentsAccount: ObservableObject, Account {
                 }
             }
         }
+        
+        print("✅ InvestmentsAccount: Finished watchlist price update")
     }
     
     private func updateWatchlistItem(at index: Int) async {
-        guard index < watchlist.count else { return }
+        guard index < watchlist.count else { 
+            print("❌ InvestmentsAccount: Index \(index) out of bounds for watchlist")
+            return 
+        }
+        
+        let symbol = watchlist[index].symbol
+        print("🔍 InvestmentsAccount: Fetching price for \(symbol)")
         
         do {
-            let symbol = watchlist[index].symbol
             let priceResponse = try await apiManager.getLatestStockPrice(symbol: symbol)
+            print("✅ InvestmentsAccount: Got price for \(symbol): \(priceResponse.latestPrice)")
             
             await MainActor.run {
                 if index < self.watchlist.count {
@@ -426,10 +441,12 @@ class InvestmentsAccount: ObservableObject, Account {
                         let changePercent = (change / previousPrice) * 100
                         self.watchlist[index].dayChange = change
                         self.watchlist[index].dayChangePercent = changePercent
+                        print("📈 InvestmentsAccount: \(symbol) price change: \(change) (\(changePercent)%)")
                     } else {
                         // First time loading, no change data available
                         self.watchlist[index].dayChange = 0.0
                         self.watchlist[index].dayChangePercent = 0.0
+                        print("🆕 InvestmentsAccount: \(symbol) first price load: \(priceResponse.latestPrice)")
                     }
                     
                     self.watchlist[index].lastUpdated = Date()
@@ -438,6 +455,7 @@ class InvestmentsAccount: ObservableObject, Account {
                 }
             }
         } catch {
+            print("❌ InvestmentsAccount: Failed to get price for \(symbol): \(error)")
             await MainActor.run {
                 if index < self.watchlist.count {
                     self.watchlist[index].isLoading = false

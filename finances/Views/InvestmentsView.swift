@@ -3,6 +3,7 @@ import SwiftUI
 struct InvestmentsView: View {
     @StateObject private var viewModel = InvestmentsViewModel()
     @ObservedObject private var investmentsAccount = InvestmentsAccount.shared
+    @ObservedObject private var apiManager = IBKRAPIManager.shared
     
     private func formatCurrency(_ value: Double) -> String {
         let formatter = NumberFormatter()
@@ -15,7 +16,7 @@ struct InvestmentsView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if investmentsAccount.isConnectedToIBKR {
+                if apiManager.isConnected {
                     // Show comprehensive trading dashboard when connected
                     ScrollView {
                         LazyVStack(spacing: 16) {
@@ -28,10 +29,10 @@ struct InvestmentsView: View {
                             // SECTION 3: PnL Tracking (/pnl + /pnl-single)
                             PnLTrackingSection()
                             
-                            // SECTION 4: Orders (/open-orders)
+                            // SECTION 4: Orders (/open-orders) - Read Only
                             OrdersSection()
                             
-                            // SECTION 5: Trades/Fills (/exec-details)
+                            // SECTION 5: Trades/Fills (/exec-details) - Read Only
                             TradesSection()
                             
                             // SECTION 6: Market Data (/latest-price)
@@ -61,9 +62,9 @@ struct InvestmentsView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    if investmentsAccount.isConnectedToIBKR {
+                    if apiManager.isConnected {
                         Button(action: {
-                            investmentsAccount.disconnectFromIBKR()
+                            apiManager.disconnect()
                         }) {
                             Image(systemName: "wifi.slash")
                                 .frame(width: 24, height: 24)
@@ -78,8 +79,14 @@ struct InvestmentsView: View {
                         Image(systemName: "arrow.clockwise")
                             .frame(width: 24, height: 24)
                     }
-                    .disabled(!investmentsAccount.isConnectedToIBKR)
+                    .disabled(!apiManager.isConnected)
                 }
+            }
+        }
+        .task {
+            // Auto-refresh data when view appears if connected
+            if apiManager.isConnected {
+                await viewModel.refreshData()
             }
         }
     }
@@ -314,7 +321,7 @@ struct InvestmentsView: View {
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
     
-    // MARK: - SECTION 4: Orders (/open-orders)
+    // MARK: - SECTION 4: Orders (/open-orders) - Read Only
     @ViewBuilder
     private func OrdersSection() -> some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -340,8 +347,8 @@ struct InvestmentsView: View {
                 )
             } else {
                 VStack(spacing: 8) {
-                    ForEach(investmentsAccount.openOrders.prefix(3), id: \.orderStatus.orderId) { order in
-                        OrderRow(order: order, showActions: true)
+                    ForEach(Array(investmentsAccount.openOrders.prefix(3).enumerated()), id: \.offset) { index, order in
+                        OrderRow(order: order, showActions: false) // Read-only
                     }
                     
                     if investmentsAccount.openOrders.count > 3 {
@@ -361,7 +368,7 @@ struct InvestmentsView: View {
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
     
-    // MARK: - SECTION 5: Trades/Fills (/exec-details)
+    // MARK: - SECTION 5: Trades/Fills (/exec-details) - Read Only
     @ViewBuilder
     private func TradesSection() -> some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -387,7 +394,7 @@ struct InvestmentsView: View {
                 )
             } else {
                 VStack(spacing: 8) {
-                    ForEach(investmentsAccount.completedOrders.prefix(3), id: \.orderStatus.orderId) { order in
+                    ForEach(Array(investmentsAccount.completedOrders.prefix(3).enumerated()), id: \.offset) { index, order in
                         TradeRow(order: order)
                     }
                     
@@ -454,7 +461,7 @@ struct InvestmentsView: View {
                                 .font(.caption)
                         }
                     }
-                    .disabled(!investmentsAccount.isConnectedToIBKR)
+                    .disabled(!apiManager.isConnected)
                     .foregroundColor(.blue)
                     .padding(.top, 8)
                 }
@@ -629,36 +636,23 @@ struct OrderRow: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("Qty: \(order.remaining.formatted(.number.precision(.fractionLength(0))))")
+                    Text("Qty: \(order.safeRemaining.formatted(.number.precision(.fractionLength(0))))")
                         .font(.caption)
                         .fontWeight(.medium)
-                    if order.orderStatus.avgFillPrice > 0 {
-                        Text("@ \(formatCurrency(order.orderStatus.avgFillPrice))")
+                    if order.orderStatus.safeAvgFillPrice > 0 {
+                        Text("@ \(formatCurrency(order.orderStatus.safeAvgFillPrice))")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
                 }
             }
             
-            if showActions && order.isActive {
-                HStack {
-                    Button("Cancel") {
-                        // TODO: Implement cancel order functionality
-                        // Use /cancel-order endpoint
-                    }
-                    .font(.caption)
-                    .foregroundColor(.red)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.red.opacity(0.1))
-                    .cornerRadius(6)
-                    
-                    Spacer()
-                    
-                    Text("Order #\(order.orderStatus.orderId)")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
+            // Order ID for reference (read-only)
+            HStack {
+                Spacer()
+                Text("Order #\(order.orderStatus.orderId)")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
             }
         }
         .padding()
@@ -701,10 +695,10 @@ struct TradeRow: View {
             Spacer()
             
             VStack(alignment: .trailing, spacing: 2) {
-                Text("Qty: \(order.filled.formatted(.number.precision(.fractionLength(0))))")
+                Text("Qty: \(order.safefilled.formatted(.number.precision(.fractionLength(0))))")
                     .font(.caption)
                     .fontWeight(.medium)
-                Text("@ \(formatCurrency(order.orderStatus.avgFillPrice))")
+                Text("@ \(formatCurrency(order.orderStatus.safeAvgFillPrice))")
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
@@ -727,62 +721,67 @@ struct WatchlistItemCard: View {
     let item: WatchlistItem
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(item.symbol)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                Spacer()
+        Button(action: {
+            openStocksApp(for: item.symbol)
+        }) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text(item.symbol)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                    Spacer()
+                    if item.isLoading {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                    } else if let error = item.error {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.caption2)
+                            .foregroundColor(.red)
+                    } else if let lastUpdated = item.lastUpdated {
+                        Text(timeAgo(from: lastUpdated))
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
                 if item.isLoading {
-                    ProgressView()
-                        .scaleEffect(0.7)
-                } else if let error = item.error {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.caption2)
-                        .foregroundColor(.red)
-                } else if let lastUpdated = item.lastUpdated {
-                    Text(timeAgo(from: lastUpdated))
-                        .font(.caption2)
+                    Text("Loading...")
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
+                } else if let error = item.error {
+                    Text("Error")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                } else {
+                    Text(formatCurrency(item.currentPrice))
+                        .font(.subheadline.monospacedDigit())
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
                 }
             }
-            
-            if item.isLoading {
-                Text("Loading...")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            } else if let error = item.error {
-                Text("Error")
-                    .font(.subheadline)
-                    .foregroundColor(.red)
+            .padding()
+            .background(Color(.secondarySystemBackground))
+            .cornerRadius(8)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+    
+    private func openStocksApp(for symbol: String) {
+        if let stocksURL = URL(string: "stocks://?symbol=\(symbol)"),
+           UIApplication.shared.canOpenURL(stocksURL) {
+            UIApplication.shared.open(stocksURL)
+        } else {
+            // Fallback Normal Stocks App
+            if let fallbackURL = URL(string: "stocks://") {
+                UIApplication.shared.open(fallbackURL)
             } else {
-                Text(formatCurrency(item.currentPrice))
-                    .font(.subheadline.monospacedDigit())
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
-            }
-            
-            // Price change information
-            if !item.isLoading && item.error == nil {
-                HStack(spacing: 4) {
-                    Image(systemName: item.dayChange >= 0 ? "arrow.up.right" : "arrow.down.right")
-                        .font(.caption2)
-                        .foregroundColor(item.dayChange >= 0 ? .green : .red)
-                    
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(formatChange(item.dayChange))
-                            .font(.caption2.monospacedDigit())
-                            .foregroundColor(item.dayChange >= 0 ? .green : .red)
-                        Text("\(item.dayChangePercent.formatted(.percent.precision(.fractionLength(2))))")
-                            .font(.caption2.monospacedDigit())
-                            .foregroundColor(item.dayChange >= 0 ? .green : .red)
-                    }
+                // Open App Store to download Stocks App
+                if let appStoreURL = URL(string: "https://apps.apple.com/us/app/stocks-by-apple/id1294833514") {
+                    UIApplication.shared.open(appStoreURL)
                 }
             }
         }
-        .padding()
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(8)
     }
     
     private func formatCurrency(_ value: Double) -> String {
@@ -791,15 +790,6 @@ struct WatchlistItemCard: View {
         formatter.currencySymbol = "$"
         formatter.maximumFractionDigits = 2
         return formatter.string(from: NSNumber(value: value)) ?? "$\(value.formatted(.number.precision(.fractionLength(2))))"
-    }
-    
-    private func formatChange(_ value: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencySymbol = "$"
-        formatter.maximumFractionDigits = 2
-        formatter.positivePrefix = "+"
-        return formatter.string(from: NSNumber(value: value)) ?? "\(value.formatted(.number.precision(.fractionLength(2))))"
     }
     
     private func timeAgo(from date: Date) -> String {

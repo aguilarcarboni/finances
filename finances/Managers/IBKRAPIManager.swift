@@ -4,7 +4,7 @@ import Combine
 class IBKRAPIManager: ObservableObject {
     static let shared = IBKRAPIManager()
     
-    private let baseURL = "http://192.168.1.43:3333"
+    private let baseURL = "http://10.4.178.183:3333"
     private var accessToken: String?
     
     @Published var isConnected = false
@@ -36,7 +36,7 @@ class IBKRAPIManager: ObservableObject {
         }
     }
     
-    // MARK: - API Calls
+    // MARK: - Account API Calls
     
     func getAccountSummary() async throws -> [IBKRAccountSummaryItem] {
         try await makeAPICall(endpoint: "/account/summary")
@@ -45,23 +45,30 @@ class IBKRAPIManager: ObservableObject {
     func getPositions() async throws -> [IBKRPosition] {
         try await makeAPICall(endpoint: "/account/positions")
     }
-    
-    func getOpenOrders() async throws -> [IBKROrder] {
-        try await makeAPICall(endpoint: "/orders/open-orders")
+
+    func getPortfolio() async throws -> [IBKRPortfolioItem] {
+        try await makeAPICall(endpoint: "/account/portfolio")
     }
-    
-    func getCompletedOrders() async throws -> [IBKROrder] {
-        try await makeAPICall(endpoint: "/orders/completed-orders")
+
+    func getPnl() async throws -> [IBKRPnlItem] {
+        try await makeAPICall(endpoint: "/account/pnl")
+    }
+
+    func getPnlSingle() async throws -> [IBKRPnLSingleItem] {
+        try await makeAPICall(endpoint: "/account/pnl-single")
     }
     
     // MARK: - Market Data API Calls
     
     func getLatestStockPrice(symbol: String) async throws -> StockPriceResponse {
+        print("🔍 IBKRAPIManager: Getting latest stock price for symbol: \(symbol)")
+        
         guard let accessToken = accessToken else {
+            print("❌ IBKRAPIManager: Not authenticated")
             throw IBKRAPIError.notAuthenticated
         }
         
-        let url = URL(string: "\(baseURL)/market/latest-price/stock")!
+        let url = URL(string: "\(baseURL)/market/latest/stock")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
@@ -70,22 +77,38 @@ class IBKRAPIManager: ObservableObject {
         let body = ["symbol": symbol]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         
+        print("📤 IBKRAPIManager: Sending request to \(url) with body: \(body)")
+        
         let (data, response) = try await URLSession.shared.data(for: request)
+        
+        print("📥 IBKRAPIManager: Received response with status: \((response as? HTTPURLResponse)?.statusCode ?? -1)")
+        
+        if let responseString = String(data: data, encoding: .utf8) {
+            print("📥 IBKRAPIManager: Response data: \(responseString)")
+        }
         
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
+            print("❌ IBKRAPIManager: Request failed with status: \((response as? HTTPURLResponse)?.statusCode ?? -1)")
             throw IBKRAPIError.requestFailed
         }
         
-        return try JSONDecoder().decode(StockPriceResponse.self, from: data)
+        do {
+            let result = try JSONDecoder().decode(StockPriceResponse.self, from: data)
+            print("✅ IBKRAPIManager: Successfully decoded price response: \(result.latestPrice)")
+            return result
+        } catch {
+            print("❌ IBKRAPIManager: Decoding failed: \(error)")
+            throw IBKRAPIError.decodingFailed
+        }
     }
     
-    func getHistoricalStockPrice(symbol: String, period: String) async throws -> [String: Any] {
+    func getHistoricalStockPrice(symbol: String, period: String) async throws -> [IBKRBarData] {
         guard let accessToken = accessToken else {
             throw IBKRAPIError.notAuthenticated
         }
         
-        let url = URL(string: "\(baseURL)/market/historical-price/stock")!
+        let url = URL(string: "\(baseURL)/market/historical/stock")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
@@ -101,11 +124,107 @@ class IBKRAPIManager: ObservableObject {
             throw IBKRAPIError.requestFailed
         }
         
-        guard let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            throw IBKRAPIError.decodingFailed
+        return try JSONDecoder().decode([IBKRBarData].self, from: data)
+    }
+    
+    // MARK: - Orders API Calls
+    
+    func placeOrder(order: IBKROrderRequest) async throws -> IBKROrderResponse {
+        guard let accessToken = accessToken else {
+            throw IBKRAPIError.notAuthenticated
         }
         
-        return jsonObject
+        let url = URL(string: "\(baseURL)/orders/place-order")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        request.httpBody = try JSONEncoder().encode(order)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw IBKRAPIError.requestFailed
+        }
+        
+        return try JSONDecoder().decode(IBKROrderResponse.self, from: data)
+    }
+
+    func getOrderStatus(orderId: String) async throws -> IBKROrderStatusResponse {
+        guard let accessToken = accessToken else {
+            throw IBKRAPIError.notAuthenticated
+        }
+        
+        let url = URL(string: "\(baseURL)/orders/order-status?orderId=\(orderId)")!
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw IBKRAPIError.requestFailed
+        }
+        
+        return try JSONDecoder().decode(IBKROrderStatusResponse.self, from: data)
+    }
+
+    func cancelOrder(orderId: String) async throws -> IBKRCancelOrderResponse {
+        guard let accessToken = accessToken else {
+            throw IBKRAPIError.notAuthenticated
+        }
+        
+        let url = URL(string: "\(baseURL)/orders/cancel-order")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body = ["orderId": orderId]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw IBKRAPIError.requestFailed
+        }
+        
+        return try JSONDecoder().decode(IBKRCancelOrderResponse.self, from: data)
+    }
+
+    func getOpenOrders() async throws -> [IBKROrder] {
+        try await makeAPICall(endpoint: "/orders/open-orders")
+    }
+
+    func getCompletedOrders() async throws -> [IBKROrder] {
+        try await makeAPICall(endpoint: "/orders/completed-orders")
+    }
+
+    func getExecDetails() async throws -> [IBKRExecutionDetail] {
+        try await makeAPICall(endpoint: "/orders/exec-details")
+    }
+
+    func closeAllPositions() async throws -> IBKRClosePositionsResponse {
+        guard let accessToken = accessToken else {
+            throw IBKRAPIError.notAuthenticated
+        }
+        
+        let url = URL(string: "\(baseURL)/orders/close-all-positions")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw IBKRAPIError.requestFailed
+        }
+        
+        return try JSONDecoder().decode(IBKRClosePositionsResponse.self, from: data)
     }
     
     // MARK: - Private Methods
