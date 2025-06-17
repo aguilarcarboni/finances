@@ -2,48 +2,10 @@ import SwiftUI
 import Foundation
 import Combine
 
-enum DateFilterType: String, CaseIterable {
-    case threeDays = "3 Days"
-    case oneWeek = "1 Week"
-    case twoWeeks = "2 Weeks"
-    case oneMonth = "1 Month"
-    case threeMonths = "3 Months"
-    case sixMonths = "6 Months"
-    case oneYear = "1 Year"
-    case allTime = "All Time"
-    
-    var dateRange: (start: Date, end: Date) {
-        let calendar = Calendar.current
-        let now = Date()
-        let endDate = now
-        
-        let startDate: Date
-        switch self {
-        case .threeDays:
-            startDate = calendar.date(byAdding: .day, value: -3, to: now) ?? now
-        case .oneWeek:
-            startDate = calendar.date(byAdding: .day, value: -7, to: now) ?? now
-        case .twoWeeks:
-            startDate = calendar.date(byAdding: .day, value: -14, to: now) ?? now
-        case .oneMonth:
-            startDate = calendar.date(byAdding: .month, value: -1, to: now) ?? now
-        case .threeMonths:
-            startDate = calendar.date(byAdding: .month, value: -3, to: now) ?? now
-        case .sixMonths:
-            startDate = calendar.date(byAdding: .month, value: -6, to: now) ?? now
-        case .oneYear:
-            startDate = calendar.date(byAdding: .year, value: -1, to: now) ?? now
-        case .allTime:
-            startDate = Date.distantPast
-        }
-        
-        return (start: startDate, end: endDate)
-    }
-}
+
 
 class ExpensesAccount: ObservableObject, Account {
     @Published var transactions: [Transaction] = []
-    @Published var selectedDateFilter: DateFilterType = .oneMonth
     
     static let shared = ExpensesAccount()
 
@@ -63,10 +25,10 @@ class ExpensesAccount: ObservableObject, Account {
         budget.first { $0.name == categoryName }?.budget ?? 0
     }   
     
-    // MARK: - Financial Analysis Methods (Filtered)
+    // MARK: - Financial Analysis Methods
     var budgetUtilization: Double {
         guard totalBudget > 0 else { return 0 }
-        return filteredTotalDebits / totalBudget
+        return totalDebits / totalBudget
     }
     
     var budgetUtilizationPercentage: Double {
@@ -74,20 +36,20 @@ class ExpensesAccount: ObservableObject, Account {
     }
     
     var remainingBudget: Double {
-        max(totalBudget - filteredTotalDebits, 0)
+        max(totalBudget - totalDebits, 0)
     }
     
     var isOverBudget: Bool {
-        filteredTotalDebits > totalBudget
+        totalDebits > totalBudget
     }
     
     var budgetOverrun: Double {
-        max(filteredTotalDebits - totalBudget, 0)
+        max(totalDebits - totalBudget, 0)
     }
     
     func categoryBudgetUtilization(_ categoryName: String) -> Double {
         let categoryBudget = budgetForCategory(categoryName)
-        let categorySpent = filteredDebitsForCategory(categoryName)
+        let categorySpent = debitsForCategory(categoryName)
         guard categoryBudget > 0 else { return 0 }
         return categorySpent / categoryBudget
     }
@@ -98,61 +60,54 @@ class ExpensesAccount: ObservableObject, Account {
     
     func categoryRemainingBudget(_ categoryName: String) -> Double {
         let categoryBudget = budgetForCategory(categoryName)
-        let categorySpent = filteredDebitsForCategory(categoryName)
+        let categorySpent = debitsForCategory(categoryName)
         return max(categoryBudget - categorySpent, 0)
     }
     
     func isCategoryOverBudget(_ categoryName: String) -> Bool {
         let categoryBudget = budgetForCategory(categoryName)
-        let categorySpent = filteredDebitsForCategory(categoryName)
+        let categorySpent = debitsForCategory(categoryName)
         return categorySpent > categoryBudget
     }
     
     func categoryBudgetOverrun(_ categoryName: String) -> Double {
         let categoryBudget = budgetForCategory(categoryName)
-        let categorySpent = filteredDebitsForCategory(categoryName)
+        let categorySpent = debitsForCategory(categoryName)
         return max(categorySpent - categoryBudget, 0)
     }
     
-    // MARK: - Filtered Data Properties
-    var filteredTransactions: [Transaction] {
-        let dateRange = selectedDateFilter.dateRange
-        return transactions.filter { transaction in
-            transaction.date >= dateRange.start && transaction.date <= dateRange.end
-        }
+    // MARK: - Data Properties
+    var debits: [Transaction] {
+        transactions.filter { $0.type == .debit }
     }
     
-    var filteredDebits: [Transaction] {
-        filteredTransactions.filter { $0.type == .debit }
+    var credits: [Transaction] {
+        transactions.filter { $0.type == .credit }
     }
     
-    var filteredCredits: [Transaction] {
-        filteredTransactions.filter { $0.type == .credit }
+    var totalDebits: Double {
+        debits.reduce(0) { $0 + $1.amount }
     }
     
-    var filteredTotalDebits: Double {
-        filteredDebits.reduce(0) { $0 + $1.amount }
+    var totalCredits: Double {
+        credits.reduce(0) { $0 + $1.amount }
     }
     
-    var filteredTotalCredits: Double {
-        filteredCredits.reduce(0) { $0 + $1.amount }
+    var netBalance: Double {
+        totalCredits - totalDebits
     }
     
-    var filteredNetBalance: Double {
-        filteredTotalCredits - filteredTotalDebits
+    func debitsForCategory(_ categoryName: String) -> Double {
+        debits.filter { $0.category == categoryName }.reduce(0) { $0 + $1.amount }
     }
     
-    func filteredDebitsForCategory(_ categoryName: String) -> Double {
-        filteredDebits.filter { $0.category == categoryName }.reduce(0) { $0 + $1.amount }
-    }
-    
-    func filteredCreditsForCategory(_ categoryName: String) -> Double {
-        filteredCredits.filter { $0.category == categoryName }.reduce(0) { $0 + $1.amount }
+    func creditsForCategory(_ categoryName: String) -> Double {
+        credits.filter { $0.category == categoryName }.reduce(0) { $0 + $1.amount }
     }
 
     var topSpendingCategories: [(category: String, amount: Double, percentage: Double)] {
-        let categorySummary = getFilteredCategorySummary()
-        let totalSpent = filteredTotalDebits
+        let categorySummary = getCategorySummary()
+        let totalSpent = totalDebits
         
         return categorySummary
             .filter { $0.debits > 0 }
@@ -160,12 +115,12 @@ class ExpensesAccount: ObservableObject, Account {
             .sorted { $0.amount > $1.amount }
     }
     
-    func getFilteredCategorySummary() -> [(category: String, debits: Double, credits: Double, netBalance: Double)] {
-        let categories = Set(filteredTransactions.map { $0.category })
+    func getCategorySummary() -> [(category: String, debits: Double, credits: Double, netBalance: Double)] {
+        let categories = Set(transactions.map { $0.category })
         
         return categories.map { category in
-            let categoryDebits = filteredDebitsForCategory(category)
-            let categoryCredits = filteredCreditsForCategory(category)
+            let categoryDebits = debitsForCategory(category)
+            let categoryCredits = creditsForCategory(category)
             return (
                 category: category,
                 debits: categoryDebits,
@@ -311,23 +266,11 @@ class ExpensesAccount: ObservableObject, Account {
             let monthDate = calendar.date(byAdding: .month, value: -monthOffset, to: currentDate)!
             
             // Income (monthly salary + occasional extras)
-            allTransactions.append(Transaction(name: "Salary", category: "Income", amount: Double.random(in: 195000...205000), type: .credit, date: calendar.date(byAdding: .day, value: -5, to: monthDate)!))
-            
-            if monthOffset < 3 && Bool.random() {
-                allTransactions.append(Transaction(name: "Freelance Income", category: "Income", amount: Double.random(in: 40000...60000), type: .credit, date: calendar.date(byAdding: .day, value: Int.random(in: -25...(-1)), to: monthDate)!))
-            }
-            
-            if monthOffset % 3 == 0 {
-                allTransactions.append(Transaction(name: "Investment Dividend", category: "Income", amount: Double.random(in: 12000...18000), type: .credit, date: calendar.date(byAdding: .day, value: Int.random(in: -20...(-5)), to: monthDate)!))
-            }
+            allTransactions.append(Transaction(name: "Salary", category: "Income", amount: Double.random(in: 450000...500000), type: .credit, date: calendar.date(byAdding: .day, value: -5, to: monthDate)!))
             
             // Monthly recurring expenses
             // Savings
-            allTransactions.append(Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: Double.random(in: 45000...55000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -8...(-2)), to: monthDate)!))
-            
-            if Bool.random() {
-                allTransactions.append(Transaction(name: "Emergency Fund Transfer", category: "Emergency Fund", amount: Double.random(in: 25000...40000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -15...(-3)), to: monthDate)!))
-            }
+            allTransactions.append(Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: 100000, type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -8...(-2)), to: monthDate)!))
             
             // Groceries (3-4 times per month)
             let groceryStores = ["Walmart Escazu", "AutoMercado", "Maxi Pali", "Fresh Market"]
@@ -348,48 +291,13 @@ class ExpensesAccount: ObservableObject, Account {
                 allTransactions.append(Transaction(name: "Gym Membership", category: "Subscriptions", amount: 15000, type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -15...(-1)), to: monthDate)!))
             }
             
-            if monthOffset <= 2 {
-                allTransactions.append(Transaction(name: "Adobe Creative Cloud", category: "Subscriptions", amount: 8500, type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -20...(-1)), to: monthDate)!))
-            }
-            
-            if monthOffset <= 0 {
-                allTransactions.append(Transaction(name: "Amazon Prime", category: "Subscriptions", amount: 4200, type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -25...(-1)), to: monthDate)!))
-            }
-            
-            // Transportation
-            for _ in 0...Int.random(in: 2...5) {
-                let transportTypes = [("Uber Ride", 2500.0...8000.0), ("Taxi Ride", 3000.0...6000.0), ("Parking Fee", 1000.0...4000.0)]
-                let (name, range) = transportTypes.randomElement()!
-                allTransactions.append(Transaction(name: name, category: "Transportation", amount: Double.random(in: range), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
-            }
-            
             // Gas every 2 weeks
             for week in [1, 3] {
-                allTransactions.append(Transaction(name: "Gasoline", category: "Transportation", amount: Double.random(in: 15000...22000), type: .debit, date: calendar.date(byAdding: .day, value: -(week * 7), to: monthDate)!))
+                allTransactions.append(Transaction(name: "Gasoline", category: "Transportation", amount: Double.random(in: 20000...25000), type: .debit, date: calendar.date(byAdding: .day, value: -(week * 7), to: monthDate)!))
             }
             
             // Monthly debt payments
             allTransactions.append(Transaction(name: "Car Loan Payment", category: "Debt", amount: Double.random(in: 10000...15000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -5...(-1)), to: monthDate)!))
-            
-            if monthOffset <= 4 {
-                allTransactions.append(Transaction(name: "Credit Card Payment", category: "Debt", amount: Double.random(in: 35000...55000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -20...(-10)), to: monthDate)!))
-            }
-            
-            if monthOffset <= 6 {
-                allTransactions.append(Transaction(name: "Student Loan Payment", category: "Debt", amount: Double.random(in: 28000...35000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-20)), to: monthDate)!))
-            }
-            
-            // Monthly utilities
-            allTransactions.append(Transaction(name: "Electricity Bill - ICE", category: "Utilities", amount: Double.random(in: 18000...28000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -15...(-5)), to: monthDate)!))
-            allTransactions.append(Transaction(name: "Water Bill - AyA", category: "Utilities", amount: Double.random(in: 6000...12000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -18...(-8)), to: monthDate)!))
-            allTransactions.append(Transaction(name: "Internet - Kolbi", category: "Utilities", amount: Double.random(in: 16000...22000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -12...(-2)), to: monthDate)!))
-            allTransactions.append(Transaction(name: "Mobile Phone Bill", category: "Utilities", amount: Double.random(in: 10000...15000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -25...(-15)), to: monthDate)!))
-            
-            // Quarterly expenses
-            if monthOffset % 3 == 0 {
-                allTransactions.append(Transaction(name: "Car Insurance", category: "Transportation", amount: Double.random(in: 25000...35000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -20...(-5)), to: monthDate)!))
-                allTransactions.append(Transaction(name: "Health Insurance", category: "Healthcare", amount: Double.random(in: 30000...40000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -25...(-10)), to: monthDate)!))
-            }
             
             // Occasional expenses
             if Bool.random() && monthOffset <= 5 {

@@ -2,6 +2,36 @@ import SwiftUI
 import Charts
 import Combine
 
+enum ChartTimeFilter: String, CaseIterable {
+    case twoWeeks = "2W"
+    case oneMonth = "1M"
+    case threeMonths = "3M"
+    case sixMonths = "6M"
+    case oneYear = "1Y"
+    
+    var dateRange: (start: Date, end: Date) {
+        let calendar = Calendar.current
+        let now = Date()
+        let endDate = now
+        
+        let startDate: Date
+        switch self {
+        case .twoWeeks:
+            startDate = calendar.date(byAdding: .day, value: -14, to: now) ?? now
+        case .oneMonth:
+            startDate = calendar.date(byAdding: .month, value: -1, to: now) ?? now
+        case .threeMonths:
+            startDate = calendar.date(byAdding: .month, value: -3, to: now) ?? now
+        case .sixMonths:
+            startDate = calendar.date(byAdding: .month, value: -6, to: now) ?? now
+        case .oneYear:
+            startDate = calendar.date(byAdding: .year, value: -1, to: now) ?? now
+        }
+        
+        return (start: startDate, end: endDate)
+    }
+}
+
 extension NumberFormatter {
     static let savingsCurrencyFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
@@ -15,7 +45,7 @@ extension NumberFormatter {
 struct SavingsView: View {
     @StateObject private var viewModel = SavingsViewModel()
     @ObservedObject private var savingsAccount = SavingsAccount.shared
-    @State private var showingDatePicker = false
+    @State private var selectedChartFilter: ChartTimeFilter = .threeMonths
     
     var body: some View {
         NavigationStack {
@@ -23,6 +53,8 @@ struct SavingsView: View {
                 VStack(alignment: .leading, spacing: 30) {
                     
                     self.summaryHeader
+
+                    self.growthChartSection
                     
                     self.emergencyFundProgressSection
                     
@@ -30,23 +62,9 @@ struct SavingsView: View {
                         self.savingsCategoriesSection
                     }
                     
-                    self.growthChartSection
                 }
             }
             .navigationTitle("Savings")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        showingDatePicker = true
-                    }) {
-                        Image(systemName: "calendar")
-                            .foregroundColor(.primary)
-                    }
-                }
-            }
-            .sheet(isPresented: $showingDatePicker) {
-                DateFilterSheet(selectedFilter: $savingsAccount.selectedDateFilter)
-            }
         }
     }
 }
@@ -59,7 +77,7 @@ private extension SavingsView {
                     Text("Savings Account")
                         .font(.headline)
                         .foregroundColor(.primary)
-                    Text(savingsAccount.selectedDateFilter.rawValue)
+                    Text("All Time")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -79,7 +97,7 @@ private extension SavingsView {
                 Text("Total Balance")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                Text("₡\(Int(savingsAccount.filteredSavingsBalance).formatted())")
+                Text("₡\(Int(savingsAccount.savingsBalance).formatted())")
                     .font(.title2.monospacedDigit())
                     .fontWeight(.bold)
                     .foregroundColor(.green)
@@ -115,7 +133,7 @@ private extension SavingsView {
                         Text("Current")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        Text("₡\(Int(savingsAccount.filteredSavingsBalance).formatted())")
+                        Text("₡\(Int(savingsAccount.savingsBalance).formatted())")
                             .font(.subheadline.monospacedDigit())
                             .fontWeight(.semibold)
                     }
@@ -200,7 +218,7 @@ private extension SavingsView {
             Text("Savings Growth")
                 .font(.title2.bold())
             
-            let chartData = savingsAccount.savingsGrowthData
+            let chartData = getFilteredChartData()
             
             if !chartData.isEmpty {
                 Chart(chartData, id: \.month) { item in
@@ -251,10 +269,133 @@ private extension SavingsView {
                 )
                 .frame(height: 250)
             }
+            
+            // Time filter buttons at the bottom
+            HStack {
+                Spacer()
+                HStack(spacing: 6) {
+                    ForEach(ChartTimeFilter.allCases, id: \.self) { filter in
+                        Button(action: {
+                            selectedChartFilter = filter
+                        }) {
+                            Text(filter.rawValue)
+                                .font(.caption.bold())
+                                .foregroundColor(selectedChartFilter == filter ? .white : .gray)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(selectedChartFilter == filter ? .gray : .gray.opacity(0.2))
+                                )
+                        }
+                    }
+                }
+                Spacer()
+            }
         }
         .padding()
         .background(Color.gray.opacity(0.1))
         .cornerRadius(20)
         .padding(.horizontal)
+    }
+    
+    func getFilteredChartData() -> [(month: String, balance: Double)] {
+        let dateRange = selectedChartFilter.dateRange
+        let calendar = Calendar.current
+        var result: [(month: String, balance: Double)] = []
+        var runningBalance: Double = 0
+        
+        // Get all transactions up to the filter start date to calculate starting balance
+        let transactionsBeforeRange = savingsAccount.transactions
+            .filter { $0.date < dateRange.start }
+            .sorted { $0.date < $1.date }
+        
+        let startingBalance = transactionsBeforeRange.reduce(0) { total, transaction in
+            total + (transaction.type == .credit ? transaction.amount : -transaction.amount)
+        }
+        runningBalance = startingBalance
+        
+        // Get transactions within the selected date range
+        let filteredTransactions = savingsAccount.transactions
+            .filter { $0.date >= dateRange.start && $0.date <= dateRange.end }
+            .sorted { $0.date < $1.date }
+        
+        guard !filteredTransactions.isEmpty else {
+            // If no transactions in range, show the starting balance
+            let formatter = DateFormatter()
+            formatter.dateFormat = selectedChartFilter == .twoWeeks ? "MMM d" : "MMM yyyy"
+            result.append((month: formatter.string(from: dateRange.start), balance: max(runningBalance, 0)))
+            return result
+        }
+        
+        // Determine the appropriate time intervals based on the filter
+        let intervals = getChartTimeIntervals(from: dateRange.start, to: dateRange.end)
+        
+        for interval in intervals {
+            // Get transactions for this specific interval
+            let intervalTransactions = filteredTransactions.filter { transaction in
+                transaction.date >= interval.start && transaction.date < interval.end
+            }
+            
+            // Calculate net change for this interval
+            let intervalChange = intervalTransactions.reduce(0) { total, transaction in
+                total + (transaction.type == .credit ? transaction.amount : -transaction.amount)
+            }
+            
+            // Add to running balance
+            runningBalance += intervalChange
+            
+            result.append((month: interval.label, balance: max(runningBalance, 0)))
+        }
+        
+        return result
+    }
+    
+    func getChartTimeIntervals(from start: Date, to end: Date) -> [(start: Date, end: Date, label: String)] {
+        let calendar = Calendar.current
+        var intervals: [(start: Date, end: Date, label: String)] = []
+        
+        let formatter = DateFormatter()
+        
+        switch selectedChartFilter {
+        case .twoWeeks:
+            formatter.dateFormat = "MMM d"
+            var currentDate = start
+            while currentDate < end {
+                let nextDate = calendar.date(byAdding: .day, value: 2, to: currentDate) ?? end
+                intervals.append((
+                    start: currentDate,
+                    end: min(nextDate, end),
+                    label: formatter.string(from: currentDate)
+                ))
+                currentDate = nextDate
+            }
+        case .oneMonth:
+            formatter.dateFormat = "MMM d"
+            var currentDate = start
+            while currentDate < end {
+                let nextDate = calendar.date(byAdding: .day, value: 3, to: currentDate) ?? end
+                intervals.append((
+                    start: currentDate,
+                    end: min(nextDate, end),
+                    label: formatter.string(from: currentDate)
+                ))
+                currentDate = nextDate
+            }
+        default:
+            formatter.dateFormat = "MMM yyyy"
+            var currentDate = calendar.dateInterval(of: .month, for: start)?.start ?? start
+            while currentDate < end {
+                let nextDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? end
+                intervals.append((
+                    start: currentDate,
+                    end: min(nextDate, end),
+                    label: formatter.string(from: currentDate)
+                ))
+                currentDate = nextDate
+            }
+        }
+        
+        return intervals
     }
 }

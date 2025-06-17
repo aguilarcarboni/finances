@@ -1,10 +1,11 @@
 import SwiftUI
+import Charts
 import Combine
 
 struct ExpensesAccountView: View {
     @StateObject private var viewModel = ExpensesAccountViewModel()
     @ObservedObject private var account = ExpensesAccount.shared
-    @State private var showingDatePicker = false
+    @State private var selectedChartFilter: ChartTimeFilter = .threeMonths
 
     var body: some View {
         NavigationStack {
@@ -31,10 +32,10 @@ struct ExpensesAccountView: View {
                                 Text("Account Balance")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                Text("₡\(Int(account.filteredNetBalance).formatted())")
-                                    .font(.title2.monospacedDigit())
-                                    .fontWeight(.bold)
-                                    .foregroundColor(account.filteredNetBalance >= 0 ? .green : .red)
+                                                Text("₡\(Int(account.netBalance).formatted())")
+                    .font(.title2.monospacedDigit())
+                    .fontWeight(.bold)
+                    .foregroundColor(account.netBalance >= 0 ? .green : .red)
                             }
                         }
                     }
@@ -43,11 +44,13 @@ struct ExpensesAccountView: View {
                     .cornerRadius(12)
                     .padding(.horizontal)
 
+                    self.balanceChartSection
+
                     // Budget vs Actual Section
                     VStack(alignment: .leading, spacing: 20) {
                         
                         ForEach(account.budget) { category in
-                            let actualSpent = account.filteredDebitsForCategory(category.name)
+                            let actualSpent = account.debitsForCategory(category.name)
                             BudgetRow(
                                 category: category.name,
                                 currentAmount: actualSpent,
@@ -60,7 +63,7 @@ struct ExpensesAccountView: View {
                             .padding(.vertical, 5)
                         
                         let totalBudget = account.totalBudget
-                        let totalSpent = account.filteredTotalDebits
+                        let totalSpent = account.totalDebits
                         let overallProgress = totalSpent / totalBudget
                         
                         VStack(alignment: .leading, spacing: 8) {
@@ -99,7 +102,7 @@ struct ExpensesAccountView: View {
                         Text("Expenses")
                             .font(.title2.bold())
                         
-                        if account.filteredDebits.isEmpty {
+                        if account.debits.isEmpty {
                             HStack {
                                 Spacer()
                                 VStack(spacing: 8) {
@@ -114,7 +117,7 @@ struct ExpensesAccountView: View {
                             }
                             .padding()
                         } else {
-                            ForEach(account.filteredDebits.sorted { $0.date > $1.date }) { transaction in
+                            ForEach(account.debits.sorted { $0.date > $1.date }) { transaction in
                                 TransactionRow(transaction: transaction, isDebit: true)
                             }
                         }
@@ -127,7 +130,7 @@ struct ExpensesAccountView: View {
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             Spacer()
-                            Text("₡\(Int(account.filteredTotalDebits).formatted())")
+                            Text("₡\(Int(account.totalDebits).formatted())")
                                 .font(.headline.monospacedDigit())
                                 .fontWeight(.semibold)
                                 .foregroundColor(.red)
@@ -143,7 +146,7 @@ struct ExpensesAccountView: View {
                         Text("Income")
                             .font(.title2.bold())
                         
-                        if account.filteredCredits.isEmpty {
+                        if account.credits.isEmpty {
                             HStack {
                                 Spacer()
                                 VStack(spacing: 8) {
@@ -158,7 +161,7 @@ struct ExpensesAccountView: View {
                             }
                             .padding()
                         } else {
-                            ForEach(account.filteredCredits.sorted { $0.date > $1.date }) { transaction in
+                            ForEach(account.credits.sorted { $0.date > $1.date }) { transaction in
                                 TransactionRow(transaction: transaction, isDebit: false)
                             }
                         }
@@ -171,7 +174,7 @@ struct ExpensesAccountView: View {
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             Spacer()
-                            Text("₡\(Int(account.filteredTotalCredits).formatted())")
+                            Text("₡\(Int(account.totalCredits).formatted())")
                                 .font(.headline.monospacedDigit())
                                 .fontWeight(.semibold)
                                 .foregroundColor(.green)
@@ -184,24 +187,202 @@ struct ExpensesAccountView: View {
                 }
             }
             .navigationTitle("Expenses")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        showingDatePicker = true
-                    }) {
-                        Image(systemName: "calendar")
-                            .foregroundColor(.primary)
-                    }
-                }
-            }
-            .sheet(isPresented: $showingDatePicker) {
-                DateFilterSheet(selectedFilter: $account.selectedDateFilter)
-            }
         }
     }
     
     private func getDateRangeDisplay() -> String {
-        return account.selectedDateFilter.rawValue
+        return "All Time"
+    }
+    
+    var balanceChartSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Account Balance Over Time")
+                .font(.title2.bold())
+            
+            let chartData = getFilteredChartData()
+            
+            if !chartData.isEmpty {
+                Chart(chartData, id: \.month) { item in
+                    AreaMark(
+                        x: .value("Month", item.month),
+                        y: .value("Balance", item.balance)
+                    )
+                    .foregroundStyle(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                item.balance >= 0 ? .green.opacity(0.6) : .red.opacity(0.6),
+                                item.balance >= 0 ? .green.opacity(0.1) : .red.opacity(0.1)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    
+                    LineMark(
+                        x: .value("Month", item.month),
+                        y: .value("Balance", item.balance)
+                    )
+                    .foregroundStyle(item.balance >= 0 ? .green : .red)
+                    .lineStyle(StrokeStyle(lineWidth: 3))
+                    
+                    PointMark(
+                        x: .value("Month", item.month),
+                        y: .value("Balance", item.balance)
+                    )
+                    .foregroundStyle(item.balance >= 0 ? .green : .red)
+                    .symbolSize(60)
+                }
+                .frame(height: 250)
+                .chartYAxis {
+                    AxisMarks { value in
+                        AxisValueLabel {
+                            if let balance = value.as(Double.self) {
+                                let absValue = abs(balance)
+                                let prefix = balance < 0 ? "-₡" : "₡"
+                                Text("\(prefix)\(Int(absValue/1000))K")
+                                    .font(.caption2)
+                            }
+                        }
+                    }
+                }
+                .padding()
+                .cornerRadius(16)
+            } else {
+                ContentUnavailableView(
+                    "No Transaction Data",
+                    systemImage: "chart.line.uptrend.xyaxis",
+                    description: Text("Add transactions to see your balance over time")
+                )
+                .frame(height: 250)
+            }
+            
+            // Time filter buttons at the bottom
+            HStack {
+                Spacer()
+                HStack(spacing: 6) {
+                    ForEach(ChartTimeFilter.allCases, id: \.self) { filter in
+                        Button(action: {
+                            selectedChartFilter = filter
+                        }) {
+                            Text(filter.rawValue)
+                                .font(.caption.bold())
+                                .foregroundColor(selectedChartFilter == filter ? .white : .gray)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(selectedChartFilter == filter ? .gray : .gray.opacity(0.2))
+                                )
+                        }
+                    }
+                }
+                Spacer()
+            }
+        }
+        .padding()
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(20)
+        .padding(.horizontal)
+    }
+    
+    func getFilteredChartData() -> [(month: String, balance: Double)] {
+        let dateRange = selectedChartFilter.dateRange
+        let calendar = Calendar.current
+        var result: [(month: String, balance: Double)] = []
+        var runningBalance: Double = 0
+        
+        // Get all transactions up to the filter start date to calculate starting balance
+        let transactionsBeforeRange = account.transactions
+            .filter { $0.date < dateRange.start }
+            .sorted { $0.date < $1.date }
+        
+        let startingBalance = transactionsBeforeRange.reduce(0) { total, transaction in
+            total + (transaction.type == .credit ? transaction.amount : -transaction.amount)
+        }
+        runningBalance = startingBalance
+        
+        // Get transactions within the selected date range
+        let filteredTransactions = account.transactions
+            .filter { $0.date >= dateRange.start && $0.date <= dateRange.end }
+            .sorted { $0.date < $1.date }
+        
+        guard !filteredTransactions.isEmpty else {
+            // If no transactions in range, show the starting balance
+            let formatter = DateFormatter()
+            formatter.dateFormat = selectedChartFilter == .twoWeeks ? "MMM d" : "MMM yyyy"
+            result.append((month: formatter.string(from: dateRange.start), balance: runningBalance))
+            return result
+        }
+        
+        // Determine the appropriate time intervals based on the filter
+        let intervals = getChartTimeIntervals(from: dateRange.start, to: dateRange.end)
+        
+        for interval in intervals {
+            // Get transactions for this specific interval
+            let intervalTransactions = filteredTransactions.filter { transaction in
+                transaction.date >= interval.start && transaction.date < interval.end
+            }
+            
+            // Calculate net change for this interval
+            let intervalChange = intervalTransactions.reduce(0) { total, transaction in
+                total + (transaction.type == .credit ? transaction.amount : -transaction.amount)
+            }
+            
+            // Add to running balance
+            runningBalance += intervalChange
+            
+            result.append((month: interval.label, balance: runningBalance))
+        }
+        
+        return result
+    }
+    
+    func getChartTimeIntervals(from start: Date, to end: Date) -> [(start: Date, end: Date, label: String)] {
+        let calendar = Calendar.current
+        var intervals: [(start: Date, end: Date, label: String)] = []
+        
+        let formatter = DateFormatter()
+        
+        switch selectedChartFilter {
+        case .twoWeeks:
+            formatter.dateFormat = "MMM d"
+            var currentDate = start
+            while currentDate < end {
+                let nextDate = calendar.date(byAdding: .day, value: 2, to: currentDate) ?? end
+                intervals.append((
+                    start: currentDate,
+                    end: min(nextDate, end),
+                    label: formatter.string(from: currentDate)
+                ))
+                currentDate = nextDate
+            }
+        case .oneMonth:
+            formatter.dateFormat = "MMM d"
+            var currentDate = start
+            while currentDate < end {
+                let nextDate = calendar.date(byAdding: .day, value: 3, to: currentDate) ?? end
+                intervals.append((
+                    start: currentDate,
+                    end: min(nextDate, end),
+                    label: formatter.string(from: currentDate)
+                ))
+                currentDate = nextDate
+            }
+        default:
+            formatter.dateFormat = "MMM yyyy"
+            var currentDate = calendar.dateInterval(of: .month, for: start)?.start ?? start
+            while currentDate < end {
+                let nextDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? end
+                intervals.append((
+                    start: currentDate,
+                    end: min(nextDate, end),
+                    label: formatter.string(from: currentDate)
+                ))
+                currentDate = nextDate
+            }
+        }
+        
+        return intervals
     }
 }
 

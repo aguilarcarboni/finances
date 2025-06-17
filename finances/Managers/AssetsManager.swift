@@ -62,7 +62,7 @@ class AssetsManager: ObservableObject {
         addAsset(car)
         
         // Add an example business asset (future business loan)
-        let business = Asset(
+        let _ = Asset(
             name: "Tech Consulting Business",
             type: "Business",
             category: .intangible,
@@ -72,10 +72,10 @@ class AssetsManager: ObservableObject {
             customDepreciationRate: 0.08, // 8% annual growth
             expenseCategory: "Business"
         )
-        addAsset(business)
+        //addAsset(business)
         
         // Add an example of intellectual property
-        let patent = Asset(
+        let _ = Asset(
             name: "Software Patent",
             type: "Intellectual Property",
             category: .intangible,
@@ -85,7 +85,7 @@ class AssetsManager: ObservableObject {
             customDepreciationRate: -0.05, // Slow depreciation over time
             expenseCategory: "Research & Development"
         )
-        addAsset(patent)
+        //addAsset(patent)
     }
     
     // MARK: - Portfolio Financial Metrics
