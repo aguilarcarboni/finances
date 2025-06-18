@@ -7,6 +7,31 @@ struct ExpensesAccountView: View {
     @ObservedObject private var account = ExpensesAccount.shared
     @State private var selectedChartFilter: ChartTimeFilter = .threeMonths
 
+    // MARK: - Current Month Data
+    private var currentMonthTransactions: [Transaction] {
+        account.transactionsForMonth(Date())
+    }
+    
+    private var currentMonthDebits: [Transaction] {
+        currentMonthTransactions.filter { $0.type == .debit }
+    }
+    
+    private var currentMonthCredits: [Transaction] {
+        currentMonthTransactions.filter { $0.type == .credit }
+    }
+    
+    private var currentMonthTotalDebits: Double {
+        currentMonthDebits.reduce(0) { $0 + $1.amount }
+    }
+    
+    private var currentMonthTotalCredits: Double {
+        currentMonthCredits.reduce(0) { $0 + $1.amount }
+    }
+    
+    private func currentMonthDebitsForCategory(_ categoryName: String) -> Double {
+        currentMonthDebits.filter { $0.category == categoryName }.reduce(0) { $0 + $1.amount }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -32,10 +57,10 @@ struct ExpensesAccountView: View {
                                 Text("Account Balance")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                                Text("₡\(Int(account.netBalance).formatted())")
-                    .font(.title2.monospacedDigit())
-                    .fontWeight(.bold)
-                    .foregroundColor(account.netBalance >= 0 ? .green : .red)
+                                Text("₡\(Int(account.netBalance).formatted())")
+                                    .font(.title2.monospacedDigit())
+                                    .fontWeight(.bold)
+                                    .foregroundColor(account.netBalance >= 0 ? .green : .red)
                             }
                         }
                     }
@@ -50,7 +75,7 @@ struct ExpensesAccountView: View {
                     VStack(alignment: .leading, spacing: 20) {
                         
                         ForEach(account.budget) { category in
-                            let actualSpent = account.debitsForCategory(category.name)
+                            let actualSpent = currentMonthDebitsForCategory(category.name)
                             BudgetRow(
                                 category: category.name,
                                 currentAmount: actualSpent,
@@ -63,7 +88,7 @@ struct ExpensesAccountView: View {
                             .padding(.vertical, 5)
                         
                         let totalBudget = account.totalBudget
-                        let totalSpent = account.totalDebits
+                        let totalSpent = currentMonthTotalDebits
                         let overallProgress = totalSpent / totalBudget
                         
                         VStack(alignment: .leading, spacing: 8) {
@@ -102,7 +127,7 @@ struct ExpensesAccountView: View {
                         Text("Expenses")
                             .font(.title2.bold())
                         
-                        if account.debits.isEmpty {
+                        if currentMonthDebits.isEmpty {
                             HStack {
                                 Spacer()
                                 VStack(spacing: 8) {
@@ -117,7 +142,7 @@ struct ExpensesAccountView: View {
                             }
                             .padding()
                         } else {
-                            ForEach(account.debits.sorted { $0.date > $1.date }) { transaction in
+                            ForEach(currentMonthDebits.sorted { $0.date > $1.date }) { transaction in
                                 TransactionRow(transaction: transaction, isDebit: true)
                             }
                         }
@@ -130,7 +155,7 @@ struct ExpensesAccountView: View {
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             Spacer()
-                            Text("₡\(Int(account.totalDebits).formatted())")
+                            Text("₡\(Int(currentMonthTotalDebits).formatted())")
                                 .font(.headline.monospacedDigit())
                                 .fontWeight(.semibold)
                                 .foregroundColor(.red)
@@ -146,7 +171,7 @@ struct ExpensesAccountView: View {
                         Text("Income")
                             .font(.title2.bold())
                         
-                        if account.credits.isEmpty {
+                        if currentMonthCredits.isEmpty {
                             HStack {
                                 Spacer()
                                 VStack(spacing: 8) {
@@ -161,7 +186,7 @@ struct ExpensesAccountView: View {
                             }
                             .padding()
                         } else {
-                            ForEach(account.credits.sorted { $0.date > $1.date }) { transaction in
+                            ForEach(currentMonthCredits.sorted { $0.date > $1.date }) { transaction in
                                 TransactionRow(transaction: transaction, isDebit: false)
                             }
                         }
@@ -174,7 +199,7 @@ struct ExpensesAccountView: View {
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             Spacer()
-                            Text("₡\(Int(account.totalCredits).formatted())")
+                            Text("₡\(Int(currentMonthTotalCredits).formatted())")
                                 .font(.headline.monospacedDigit())
                                 .fontWeight(.semibold)
                                 .foregroundColor(.green)
@@ -191,7 +216,9 @@ struct ExpensesAccountView: View {
     }
     
     private func getDateRangeDisplay() -> String {
-        return "All Time"
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: Date())
     }
     
     var balanceChartSection: some View {

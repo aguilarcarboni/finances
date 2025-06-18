@@ -252,6 +252,79 @@ class ExpensesAccount: ObservableObject, Account {
         budget.removeAll { $0.name == categoryName }
     }
     
+    // MARK: - Asset Revenue Management
+    func addAssetRevenue(_ transaction: Transaction) {
+        addTransaction(transaction)
+    }
+    
+    func getAssetRevenueForMonth(assetName: String, month: Date) -> Double {
+        let calendar = Calendar.current
+        let monthInterval = calendar.dateInterval(of: .month, for: month)
+        
+        return transactions
+            .filter { transaction in
+                transaction.type == .credit &&
+                transaction.category == "Asset Income" &&
+                transaction.name.contains(assetName) &&
+                (monthInterval?.contains(transaction.date) ?? false)
+            }
+            .reduce(0) { $0 + $1.amount }
+    }
+    
+    func getTotalAssetRevenue(assetName: String) -> Double {
+        return transactions
+            .filter { transaction in
+                transaction.type == .credit &&
+                transaction.category == "Asset Income" &&
+                transaction.name.contains(assetName)
+            }
+            .reduce(0) { $0 + $1.amount }
+    }
+    
+    var totalAssetRevenue: Double {
+        return transactions
+            .filter { transaction in
+                transaction.type == .credit &&
+                transaction.category == "Asset Income"
+            }
+            .reduce(0) { $0 + $1.amount }
+    }
+    
+    var assetRevenueByAsset: [(assetName: String, totalRevenue: Double)] {
+        let assetTransactions = transactions.filter { 
+            $0.type == .credit && $0.category == "Asset Income" 
+        }
+        
+        var assetRevenues: [String: Double] = [:]
+        
+        for transaction in assetTransactions {
+            // Extract asset name from transaction name (assumes format "AssetName Revenue")
+            let assetName = transaction.name.replacingOccurrences(of: " Revenue", with: "")
+            assetRevenues[assetName, default: 0] += transaction.amount
+        }
+        
+        return assetRevenues.map { (assetName: $0.key, totalRevenue: $0.value) }
+            .sorted { $0.totalRevenue > $1.totalRevenue }
+    }
+    
+    func getAssetRevenueHistory(assetName: String) -> [(month: String, revenue: Double)] {
+        var result: [(month: String, revenue: Double)] = []
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM yyyy"
+        
+        // Get revenue for the last 12 months
+        for i in 0..<12 {
+            let monthDate = calendar.date(byAdding: .month, value: -i, to: Date()) ?? Date()
+            let monthString = formatter.string(from: monthDate)
+            let revenue = getAssetRevenueForMonth(assetName: assetName, month: monthDate)
+            
+            result.append((month: monthString, revenue: revenue))
+        }
+        
+        return result.reversed()
+    }
+    
     private init() {
         setupMockData()
     }

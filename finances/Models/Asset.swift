@@ -45,6 +45,20 @@ struct LoanDetails {
     }
 }
 
+struct RevenueDetails {
+    var monthlyRevenueTarget: Double
+    var revenueGenerationRate: Double // Probability of generating revenue (0.0 to 1.0)
+    var variabilityFactor: Double // How much the revenue can vary (0.0 to 1.0)
+    var isRevenueGenerating: Bool
+    
+    init(monthlyTarget: Double, generationRate: Double = 0.8, variabilityFactor: Double = 0.3) {
+        self.monthlyRevenueTarget = monthlyTarget
+        self.revenueGenerationRate = max(0.0, min(1.0, generationRate))
+        self.variabilityFactor = max(0.0, min(1.0, variabilityFactor))
+        self.isRevenueGenerating = monthlyTarget > 0
+    }
+}
+
 struct Asset: Identifiable {
     var id: UUID
     var name: String
@@ -56,10 +70,11 @@ struct Asset: Identifiable {
     var customDepreciationRate: Double?
     var expenseCategory: String // Category name in ExpensesAccount for tracking actual payments
     var loan: LoanDetails?
+    var revenue: RevenueDetails?
     
     // MARK: - Convenience Initializers
     
-    // For assets without loans
+    // For assets without loans or revenue
     init(id: UUID = UUID(), name: String, type: String, category: AssetCategory, acquisitionDate: Date, acquisitionPrice: Double, currentMarketValue: Double? = nil, customDepreciationRate: Double? = nil, expenseCategory: String = "") {
         self.id = id
         self.name = name
@@ -71,6 +86,7 @@ struct Asset: Identifiable {
         self.customDepreciationRate = customDepreciationRate
         self.expenseCategory = expenseCategory
         self.loan = nil
+        self.revenue = nil
     }
     
     // For assets with loans
@@ -91,6 +107,51 @@ struct Asset: Identifiable {
             startDate: acquisitionDate,
             downPayment: downPayment
         )
+        self.revenue = nil
+    }
+    
+    // For revenue generating assets
+    init(id: UUID = UUID(), name: String, type: String, category: AssetCategory, acquisitionDate: Date, acquisitionPrice: Double, currentMarketValue: Double? = nil, customDepreciationRate: Double? = nil, expenseCategory: String = "", monthlyRevenueTarget: Double, revenueGenerationRate: Double = 0.8, variabilityFactor: Double = 0.3) {
+        self.id = id
+        self.name = name
+        self.type = type
+        self.category = category
+        self.acquisitionDate = acquisitionDate
+        self.acquisitionPrice = acquisitionPrice
+        self.currentMarketValue = currentMarketValue
+        self.customDepreciationRate = customDepreciationRate
+        self.expenseCategory = expenseCategory
+        self.loan = nil
+        self.revenue = RevenueDetails(
+            monthlyTarget: monthlyRevenueTarget,
+            generationRate: revenueGenerationRate,
+            variabilityFactor: variabilityFactor
+        )
+    }
+    
+    // For assets with both loans and revenue generation
+    init(id: UUID = UUID(), name: String, type: String, category: AssetCategory, acquisitionDate: Date, acquisitionPrice: Double, currentMarketValue: Double? = nil, customDepreciationRate: Double? = nil, expenseCategory: String = "", loanAmount: Double, interestRate: Double, loanTermYears: Int, downPayment: Double = 0, monthlyRevenueTarget: Double, revenueGenerationRate: Double = 0.8, variabilityFactor: Double = 0.3) {
+        self.id = id
+        self.name = name
+        self.type = type
+        self.category = category
+        self.acquisitionDate = acquisitionDate
+        self.acquisitionPrice = acquisitionPrice
+        self.currentMarketValue = currentMarketValue
+        self.customDepreciationRate = customDepreciationRate
+        self.expenseCategory = expenseCategory
+        self.loan = LoanDetails(
+            originalAmount: loanAmount,
+            interestRate: interestRate,
+            termYears: loanTermYears,
+            startDate: acquisitionDate,
+            downPayment: downPayment
+        )
+        self.revenue = RevenueDetails(
+            monthlyTarget: monthlyRevenueTarget,
+            generationRate: revenueGenerationRate,
+            variabilityFactor: variabilityFactor
+        )
     }
     
     // MARK: - Basic Properties
@@ -108,6 +169,14 @@ struct Asset: Identifiable {
     
     var loanStatus: LoanStatus {
         loan?.status ?? .noLoan
+    }
+    
+    var isRevenueGenerating: Bool {
+        revenue?.isRevenueGenerating ?? false
+    }
+    
+    var monthlyRevenueTarget: Double {
+        revenue?.monthlyRevenueTarget ?? 0
     }
     
     // MARK: - Time-based Properties
@@ -177,6 +246,62 @@ struct Asset: Identifiable {
         return loan.downPayment + (monthlyPayment * Double(paymentsMade))
     }
     
+    // MARK: - Revenue Generation Methods
+    func generateMonthlyRevenue(for date: Date = Date()) -> Double? {
+        guard let revenue = revenue, revenue.isRevenueGenerating else { return nil }
+        
+        // Check if revenue should be generated this month based on generation rate
+        let randomValue = Double.random(in: 0...1)
+        guard randomValue <= revenue.revenueGenerationRate else { return nil }
+        
+        // Calculate revenue with variability
+        let baseRevenue = revenue.monthlyRevenueTarget
+        let variation = baseRevenue * revenue.variabilityFactor * Double.random(in: -1...1)
+        let actualRevenue = max(0, baseRevenue + variation)
+        
+        return actualRevenue
+    }
+    
+    func emitRevenueToExpensesAccount(for date: Date = Date()) {
+        if let revenue = generateMonthlyRevenue(for: date) {
+            let transaction = Transaction(
+                name: "\(name) Revenue",
+                category: "Asset Income",
+                amount: revenue,
+                type: .credit,
+                date: date
+            )
+            ExpensesAccount.shared.addAssetRevenue(transaction)
+        }
+    }
+    
+    func getHistoricalRevenue() -> [(month: String, target: Double, actual: Double)] {
+        guard isRevenueGenerating else { return [] }
+        
+        var result: [(month: String, target: Double, actual: Double)] = []
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM yyyy"
+        
+        // Get revenue for the last 12 months
+        for i in 0..<12 {
+            let monthDate = calendar.date(byAdding: .month, value: -i, to: Date()) ?? Date()
+            
+            // Skip months before asset acquisition
+            guard monthDate >= acquisitionDate else { continue }
+            
+            let monthString = formatter.string(from: monthDate)
+            let target = monthlyRevenueTarget
+            
+            // Get actual revenue from ExpensesAccount
+            let actual = ExpensesAccount.shared.getAssetRevenueForMonth(assetName: name, month: monthDate)
+            
+            result.append((month: monthString, target: target, actual: actual))
+        }
+        
+        return result.reversed()
+    }
+    
     // MARK: - Performance Metrics
     var totalAppreciation: Double {
         currentValue - acquisitionPrice
@@ -198,6 +323,40 @@ struct Asset: Identifiable {
     
     var annualizedAppreciationRatePercentage: Double {
         annualizedAppreciationRate * 100
+    }
+    
+    // MARK: - Revenue Performance Metrics
+    var totalRevenueGenerated: Double {
+        ExpensesAccount.shared.getTotalAssetRevenue(assetName: name)
+    }
+    
+    var averageMonthlyRevenue: Double {
+        guard monthsOwned > 0 else { return 0 }
+        return totalRevenueGenerated / Double(monthsOwned)
+    }
+    
+    var revenueTargetAchievementRate: Double {
+        guard monthlyRevenueTarget > 0, monthsOwned > 0 else { return 0 }
+        let totalExpectedRevenue = monthlyRevenueTarget * Double(monthsOwned)
+        return totalRevenueGenerated / totalExpectedRevenue
+    }
+    
+    var revenueTargetAchievementPercentage: Double {
+        revenueTargetAchievementRate * 100
+    }
+    
+    var monthlyRevenuePerformance: String {
+        let achievementRate = revenueTargetAchievementRate
+        switch achievementRate {
+        case 1.2...:
+            return "Excellent"
+        case 1.0..<1.2:
+            return "Good"
+        case 0.8..<1.0:
+            return "Fair"
+        default:
+            return "Poor"
+        }
     }
     
     // MARK: - Equity and Ratios (only meaningful for assets with loans)
@@ -307,13 +466,22 @@ struct Asset: Identifiable {
         }
     }
     
-    // MARK: - Loan Management Methods
+    // MARK: - Asset Management Methods
     mutating func markLoanAsPaidOff(on date: Date = Date()) {
         loan?.markAsPaidOff(on: date)
     }
     
     mutating func updateMarketValue(_ newValue: Double) {
         self.currentMarketValue = newValue
+    }
+    
+    mutating func updateRevenueTarget(_ newTarget: Double) {
+        revenue?.monthlyRevenueTarget = newTarget
+        revenue?.isRevenueGenerating = newTarget > 0
+    }
+    
+    mutating func updateRevenueGenerationRate(_ newRate: Double) {
+        revenue?.revenueGenerationRate = max(0.0, min(1.0, newRate))
     }
     
     // MARK: - Payoff Analysis Methods (only for active loans)

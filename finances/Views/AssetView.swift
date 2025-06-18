@@ -20,6 +20,13 @@ struct DepreciationDataPoint: Identifiable {
     let value: Double
 }
 
+struct RevenueDataPoint: Identifiable {
+    let id = UUID()
+    let month: String
+    let target: Double
+    let actual: Double
+}
+
 struct PaymentDataPoint: Identifiable {
     let id = UUID()
     let month: Int
@@ -40,6 +47,7 @@ struct AssetDetailView: View {
     @ObservedObject private var expensesAccount = ExpensesAccount.shared
     
     @State private var forecastMonths: Double = 12
+    @State private var selectedChartFilter: ChartTimeFilter = .sixMonths
     
     var body: some View {
         ScrollView {
@@ -49,6 +57,12 @@ struct AssetDetailView: View {
                 assetDetailsCard
                 financialOverviewCard
                 valueOverTimeChartCard
+                
+                // Revenue tracking for revenue-generating assets
+                if asset.isRevenueGenerating {
+                    revenueTrackingCard
+                }
+                
                 performanceSummaryCard
             }
             .padding()
@@ -72,7 +86,7 @@ struct AssetDetailView: View {
                             .font(.title3)
                             .foregroundStyle(.secondary)
                         
-                        // Category and Loan Status Badges
+                        // Category, Loan Status, and Revenue Badges
                         HStack(spacing: 4) {
                             Text(asset.category.rawValue)
                                 .font(.caption)
@@ -89,6 +103,16 @@ struct AssetDetailView: View {
                                 .background(loanStatusColor.opacity(0.2))
                                 .foregroundStyle(loanStatusColor)
                                 .clipShape(Capsule())
+                            
+                            if asset.isRevenueGenerating {
+                                Text("Revenue Generating")
+                                    .font(.caption)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(.green.opacity(0.2))
+                                    .foregroundStyle(.green)
+                                    .clipShape(Capsule())
+                            }
                         }
                     }
                 }
@@ -118,6 +142,14 @@ struct AssetDetailView: View {
                 DetailRow(title: "Acquisition Price", value: "₡\(formattedNumber(asset.acquisitionPrice))")
                 DetailRow(title: "Current Value", value: "₡\(formattedNumber(asset.currentValue))")
                 DetailRow(title: "Years Owned", value: String(format: "%.1f", asset.yearsOwned))
+                
+                // Revenue details for revenue-generating assets
+                if asset.isRevenueGenerating {
+                    DetailRow(title: "Monthly Revenue Target", value: "₡\(formattedNumber(asset.monthlyRevenueTarget))")
+                    DetailRow(title: "Total Revenue Generated", value: "₡\(formattedNumber(asset.totalRevenueGenerated))")
+                    DetailRow(title: "Average Monthly Revenue", value: "₡\(formattedNumber(asset.averageMonthlyRevenue))")
+                    DetailRow(title: "Target Achievement", value: String(format: "%.1f", asset.revenueTargetAchievementPercentage) + "%")
+                }
                 
                 // Modular content based on asset type and loan status
                 if asset.hasLoan {
@@ -304,6 +336,132 @@ struct AssetDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
     
+    private var revenueTrackingCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Revenue Performance")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                    
+                    Text("Target vs Actual Monthly Revenue")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+                
+                HStack(spacing: 8) {
+                    HStack(spacing: 4) {
+                        Rectangle()
+                            .fill(.blue)
+                            .frame(width: 12, height: 3)
+                        Text("Target")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    HStack(spacing: 4) {
+                        Rectangle()
+                            .fill(.green)
+                            .frame(width: 12, height: 3)
+                        Text("Actual")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            
+            let revenueData = getRevenueChartData()
+            
+            if !revenueData.isEmpty {
+                Chart(revenueData) { dataPoint in
+                    // Target line
+                    LineMark(
+                        x: .value("Month", dataPoint.month),
+                        y: .value("Target", dataPoint.target)
+                    )
+                    .foregroundStyle(.blue)
+                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 3]))
+                    
+                    // Actual revenue bars
+                    BarMark(
+                        x: .value("Month", dataPoint.month),
+                        y: .value("Actual", dataPoint.actual)
+                    )
+                    .foregroundStyle(.green.opacity(0.7))
+                    .cornerRadius(4)
+                    
+                    // Actual revenue points
+                    PointMark(
+                        x: .value("Month", dataPoint.month),
+                        y: .value("Actual", dataPoint.actual)
+                    )
+                    .foregroundStyle(.green)
+                    .symbolSize(60)
+                }
+                .frame(height: 250)
+                .chartYAxis {
+                    AxisMarks { value in
+                        AxisValueLabel {
+                            if let revenue = value.as(Double.self) {
+                                Text("₡\(Int(revenue/1000))K")
+                                    .font(.caption2)
+                            }
+                        }
+                    }
+                }
+                .chartXAxis {
+                    AxisMarks { value in
+                        AxisValueLabel {
+                            if let month = value.as(String.self) {
+                                Text(month)
+                                    .font(.caption2)
+                                    .rotationEffect(.degrees(-45))
+                            }
+                        }
+                    }
+                }
+            } else {
+                ContentUnavailableView(
+                    "No Revenue Data",
+                    systemImage: "chart.bar",
+                    description: Text("Start generating revenue to see performance tracking")
+                )
+                .frame(height: 250)
+            }
+            
+            // Revenue performance summary
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Achievement Rate")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(String(format: "%.1f", asset.revenueTargetAchievementPercentage) + "%")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(revenuePerformanceColor)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("Performance")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(asset.monthlyRevenuePerformance)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(revenuePerformanceColor)
+                }
+            }
+            .padding(.top, 8)
+        }
+        .padding()
+        .background(.regularMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+    
     private var performanceSummaryCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Performance Summary")
@@ -354,6 +512,41 @@ struct AssetDetailView: View {
                         .foregroundStyle(performanceColor)
                 }
             }
+            
+            // Add revenue summary if revenue-generating
+            if asset.isRevenueGenerating {
+                Divider()
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Revenue Summary")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Total Generated")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text("₡\(formattedNumber(asset.totalRevenueGenerated))")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.green)
+                        }
+                        
+                        Spacer()
+                        
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text("Avg Monthly")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text("₡\(formattedNumber(asset.averageMonthlyRevenue))")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.blue)
+                        }
+                    }
+                }
+            }
         }
         .padding()
         .background(.regularMaterial)
@@ -363,7 +556,9 @@ struct AssetDetailView: View {
     // MARK: - Modular Content Helpers
     
     private var financialOverviewTitle: String {
-        if asset.hasActiveLoan {
+        if asset.isRevenueGenerating {
+            return "Financial & Revenue Overview"
+        } else if asset.hasActiveLoan {
             return "Loan Overview"
         } else if asset.loanStatus == .paidOff {
             return "Equity Summary"
@@ -373,7 +568,9 @@ struct AssetDetailView: View {
     }
     
     private var financialOverviewIcon: String {
-        if asset.hasActiveLoan {
+        if asset.isRevenueGenerating {
+            return "dollarsign.circle"
+        } else if asset.hasActiveLoan {
             return "creditcard"
         } else if asset.loanStatus == .paidOff {
             return "checkmark.circle"
@@ -383,7 +580,9 @@ struct AssetDetailView: View {
     }
     
     private var financialOverviewIconColor: Color {
-        if asset.hasActiveLoan {
+        if asset.isRevenueGenerating {
+            return .green
+        } else if asset.hasActiveLoan {
             return .orange
         } else if asset.loanStatus == .paidOff {
             return .green
@@ -602,6 +801,15 @@ struct AssetDetailView: View {
         }
     }
     
+    private var revenuePerformanceColor: Color {
+        switch asset.monthlyRevenuePerformance {
+        case "Excellent": return .green
+        case "Good": return .blue
+        case "Fair": return .orange
+        default: return .red
+        }
+    }
+    
     private var loanProgressPercentage: Double {
         guard asset.hasActiveLoan else { return 100 }
         let totalMonths = Double(asset.loanTermYears * 12)
@@ -636,6 +844,19 @@ struct AssetDetailView: View {
         return (0...10).map { year in
             let value = asset.acquisitionPrice * pow(1 + effectiveAnnualRate, Double(year))
             return DepreciationDataPoint(year: year, value: max(0, value))
+        }
+    }
+    
+    private func getRevenueChartData() -> [RevenueDataPoint] {
+        guard asset.isRevenueGenerating else { return [] }
+        
+        let historicalData = asset.getHistoricalRevenue()
+        return historicalData.map { data in
+            RevenueDataPoint(
+                month: data.month,
+                target: data.target,
+                actual: data.actual
+            )
         }
     }
     
