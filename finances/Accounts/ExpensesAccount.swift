@@ -326,102 +326,39 @@ class ExpensesAccount: ObservableObject, Account {
     }
     
     private init() {
-        setupMockData()
+        // Data is loaded via CSV import (ExpensesCSVImportManager)
     }
     
-    private func setupMockData() {
-        let calendar = Calendar.current
-        let currentDate = Date()
-        var allTransactions: [Transaction] = []
-        
-        // Generate transactions for the last 8 months
-        for monthOffset in 0...7 {
-            let monthDate = calendar.date(byAdding: .month, value: -monthOffset, to: currentDate)!
-            
-            // Income (monthly salary + occasional extras)
-            allTransactions.append(Transaction(name: "Salary", category: "Income", amount: Double.random(in: 450000...500000), type: .credit, date: calendar.date(byAdding: .day, value: -5, to: monthDate)!))
-            
-            // Monthly recurring expenses
-            // Savings
-            allTransactions.append(Transaction(name: "Monthly Savings Transfer", category: "Savings", amount: 100000, type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -8...(-2)), to: monthDate)!))
-            
-            // Groceries (3-4 times per month)
-            let groceryStores = ["Walmart Escazu", "AutoMercado", "Maxi Pali", "Fresh Market"]
-            for _ in 0...Int.random(in: 2...4) {
-                allTransactions.append(Transaction(name: "Groceries - \(groceryStores.randomElement()!)", category: "Groceries", amount: Double.random(in: 8000...25000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
-            }
-            
-            // Dining (variable frequency)
-            let restaurants = ["McDonald's", "Starbucks", "Olive Garden", "Pizza Hut", "Coffee Shop", "Subway", "KFC", "Burger King"]
-            for _ in 0...Int.random(in: 3...8) {
-                allTransactions.append(Transaction(name: restaurants.randomElement()!, category: "Dining", amount: Double.random(in: 1500...15000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
-            }
-            
-            // Monthly subscriptions
-            if monthOffset <= 1 {
-                allTransactions.append(Transaction(name: "Netflix Subscription", category: "Subscriptions", amount: 3900, type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -10...(-1)), to: monthDate)!))
-                allTransactions.append(Transaction(name: "Spotify Subscription", category: "Subscriptions", amount: 3000, type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -12...(-1)), to: monthDate)!))
-                allTransactions.append(Transaction(name: "Gym Membership", category: "Subscriptions", amount: 15000, type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -15...(-1)), to: monthDate)!))
-            }
-            
-            // Gas every 2 weeks
-            for week in [1, 3] {
-                allTransactions.append(Transaction(name: "Gasoline", category: "Transportation", amount: Double.random(in: 20000...25000), type: .debit, date: calendar.date(byAdding: .day, value: -(week * 7), to: monthDate)!))
-            }
-            
-            // Monthly debt payments
-            allTransactions.append(Transaction(name: "Car Loan Payment", category: "Debt", amount: Double.random(in: 10000...15000), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -5...(-1)), to: monthDate)!))
-            
-            // Occasional expenses
-            if Bool.random() && monthOffset <= 5 {
-                let entertainmentOptions = [("Cinema Tickets", 5000.0...8000.0), ("Concert Tickets", 20000.0...35000.0), ("Theater Show", 15000.0...25000.0)]
-                let (name, range) = entertainmentOptions.randomElement()!
-                allTransactions.append(Transaction(name: name, category: "Entertainment", amount: Double.random(in: range), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
-            }
-            
-            if Bool.random() {
-                let healthcareOptions = [("Doctor Appointment", 20000.0...30000.0), ("Pharmacy - Medications", 6000.0...12000.0), ("Dental Cleaning", 15000.0...25000.0)]
-                let (name, range) = healthcareOptions.randomElement()!
-                allTransactions.append(Transaction(name: name, category: "Healthcare", amount: Double.random(in: range), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
-            }
-            
-            // Shopping (variable)
-            if Bool.random() {
-                let shoppingOptions = [("Amazon Purchase", 10000.0...20000.0), ("Clothing Store", 20000.0...50000.0), ("Electronics", 30000.0...80000.0), ("Household Items", 8000.0...18000.0)]
-                let (name, range) = shoppingOptions.randomElement()!
-                allTransactions.append(Transaction(name: name, category: "Shopping", amount: Double.random(in: range), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
-            }
-            
-            // Miscellaneous
-            let miscOptions = [("Haircut", 6000.0...10000.0), ("Pet Supplies", 8000.0...18000.0), ("Gift", 8000.0...25000.0), ("Bank Fees", 1500.0...3500.0)]
-            if Bool.random() {
-                let (name, range) = miscOptions.randomElement()!
-                allTransactions.append(Transaction(name: name, category: "Misc", amount: Double.random(in: range), type: .debit, date: calendar.date(byAdding: .day, value: Int.random(in: -28...(-1)), to: monthDate)!))
-            }
-            
-            // Special one-time events
-            if monthOffset == 2 {
-                allTransactions.append(Transaction(name: "Tax Refund Savings", category: "Savings", amount: 85000, type: .debit, date: calendar.date(byAdding: .day, value: -10, to: monthDate)!))
-            }
-            
-            if monthOffset == 4 {
-                allTransactions.append(Transaction(name: "Car Maintenance", category: "Transportation", amount: 45000, type: .debit, date: calendar.date(byAdding: .day, value: -12, to: monthDate)!))
-            }
-            
-            if monthOffset == 6 {
-                allTransactions.append(Transaction(name: "Vacation Expenses", category: "Entertainment", amount: 120000, type: .debit, date: calendar.date(byAdding: .day, value: -8, to: monthDate)!))
-            }
-        }
-        
-        transactions = allTransactions
-        transactions.sort { $0.date > $1.date }
-    }
+    // Removed mock data generation; transactions are now supplied exclusively by CSV import.
     
     // MARK: - Account Protocol Implementation
     func addTransaction(_ transaction: Transaction) {
         transactions.append(transaction)
         // Keep transactions sorted by date (most recent first)
         transactions.sort { $0.date > $1.date }
+    }
+
+    // NEW: Import transactions from a CSV file located at the given URL.
+    func importTransactions(fromCSV url: URL) {
+        let newTransactions = ExpensesCSVParser.parseCSV(at: url)
+        guard !newTransactions.isEmpty else { return }
+        // Avoid duplicates by checking for same date, name, amount, and type
+        for transaction in newTransactions {
+            let exists = transactions.contains { existing in
+                existing.date == transaction.date &&
+                existing.name == transaction.name &&
+                existing.amount == transaction.amount &&
+                existing.type == transaction.type
+            }
+            if !exists {
+                addTransaction(transaction)
+            }
+        }
+    }
+
+    // Convenience overload to handle multiple URLs at once.
+    func importTransactions(fromCSV urls: [URL]) {
+        urls.forEach { importTransactions(fromCSV: $0) }
     }
     
     func removeTransaction(with id: UUID) {

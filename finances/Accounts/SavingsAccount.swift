@@ -158,10 +158,6 @@ class SavingsAccount: ObservableObject, Account {
         return savingsCategories.first { $0.name == categoryName }?.amount ?? 0
     }
     
-    private init() {
-        setupMockData()
-    }
-    
     private func setupMockData() {
         // Create calendar and date components
         let calendar = Calendar.current
@@ -317,4 +313,33 @@ class SavingsAccount: ObservableObject, Account {
     func removeSavingsCategory(name: String) {
         savingsAllocationCategories.removeAll { $0.name == name }
     }
+
+    // MARK: - CSV Import
+    /// Import transactions from a single CSV file. Uses `SavingsCSVParser` to decode rows.
+    func importTransactions(fromCSV url: URL) {
+        let newTransactions = SavingsCSVParser.parseCSV(at: url)
+        guard !newTransactions.isEmpty else { return }
+
+        for transaction in newTransactions {
+            let exists = transactions.contains { existing in
+                existing.date == transaction.date &&
+                existing.name == transaction.name &&
+                existing.amount == transaction.amount &&
+                existing.type == transaction.type
+            }
+
+            if !exists {
+                addTransaction(transaction)
+            }
+        }
+    }
+
+    /// Convenience overload ‑ import from multiple CSV files at once.
+    func importTransactions(fromCSV urls: [URL]) {
+        urls.forEach { importTransactions(fromCSV: $0) }
+    }
+
+    // MARK: - Singleton Init
+    /// Data is now supplied exclusively by CSV import (see `SavingsCSVImportManager`).
+    private init() {}
 } 

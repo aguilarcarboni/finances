@@ -13,6 +13,8 @@ struct financesApp: App {
     
     init() {
         // Mock data is now loaded directly in each account manager's init
+        ExpensesCSVImportManager.shared.importAllCSVFiles()
+        SavingsCSVImportManager.shared.importAllCSVFiles()
     }
 
     var body: some Scene {

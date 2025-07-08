@@ -7,9 +7,10 @@ struct ExpensesAccountView: View {
     @ObservedObject private var account = ExpensesAccount.shared
     @State private var selectedChartFilter: ChartTimeFilter = .threeMonths
 
-    // MARK: - Current Month Data
+    // MARK: - Filtered Transaction Data (based on selected time filter)
     private var currentMonthTransactions: [Transaction] {
-        account.transactionsForMonth(Date())
+        let range = selectedChartFilter.dateRange
+        return account.transactionsForDateRange(from: range.start, to: range.end)
     }
     
     private var currentMonthDebits: [Transaction] {
@@ -216,9 +217,17 @@ struct ExpensesAccountView: View {
     }
     
     private func getDateRangeDisplay() -> String {
+        let range = selectedChartFilter.dateRange
         let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
-        return formatter.string(from: Date())
+        switch selectedChartFilter {
+        case .twoWeeks, .oneMonth:
+            formatter.dateFormat = "d MMM yyyy"
+        default:
+            formatter.dateFormat = "MMM yyyy"
+        }
+        let startString = formatter.string(from: range.start)
+        let endString = formatter.string(from: range.end)
+        return "\(startString) - \(endString)"
     }
     
     var balanceChartSection: some View {

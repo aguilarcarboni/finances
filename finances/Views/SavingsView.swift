@@ -77,7 +77,7 @@ private extension SavingsView {
                     Text("Savings Account")
                         .font(.headline)
                         .foregroundColor(.primary)
-                    Text("All Time")
+                    Text(dateRangeDisplay())
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -397,5 +397,17 @@ private extension SavingsView {
         }
         
         return intervals
+    }
+    
+    func dateRangeDisplay() -> String {
+        let range = selectedChartFilter.dateRange
+        let formatter = DateFormatter()
+        switch selectedChartFilter {
+        case .twoWeeks, .oneMonth:
+            formatter.dateFormat = "d MMM yyyy"
+        default:
+            formatter.dateFormat = "MMM yyyy"
+        }
+        return "\(formatter.string(from: range.start)) - \(formatter.string(from: range.end))"
     }
 }

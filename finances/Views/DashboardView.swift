@@ -16,91 +16,12 @@ struct DashboardView: View {
                     
                     // Capital Allocation Section
                     CapitalAllocationCardView(allocation: wealthEngine.capitalAllocation)
-                    
-                    // Loan Payoff Predictor Section
-                    LoanPayoffPredictorCardView()
+
                 }
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Finances")
             .navigationBarTitleDisplayMode(.large)
-        }
-    }
-}
-
-// MARK: - Loan Payoff Predictor Card
-
-struct LoanPayoffPredictorCardView: View {
-    @StateObject private var assetsManager = AssetsManager.shared
-    
-    var body: some View {
-        NavigationLink(destination: LoanPayoffPredictorView()) {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    Text("Loan Payoff Predictor")
-                        .font(.headline)
-                    
-                    Spacer()
-                    
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                        .font(.title2)
-                        .foregroundColor(.blue)
-                }
-                
-                Text("Calculate how much interest you can save and time you can reduce by making extra loan payments.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.leading)
-                
-                if assetsWithLoans.isEmpty {
-                    HStack(spacing: 8) {
-                        Image(systemName: "info.circle")
-                            .foregroundColor(.orange)
-                            .font(.caption)
-                        
-                        Text("No active loans to analyze")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.orange.opacity(0.1))
-                    .cornerRadius(8)
-                } else {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Active loans: \(assetsWithLoans.count)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        Text("Total monthly payments: \(totalMonthlyPayments.formatted(.currency(code: "CRC")))")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                    }
-                }
-                
-                HStack {
-                    Spacer()
-                    Text("Tap to analyze →")
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(12)
-            .padding(.horizontal)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-    
-    private var assetsWithLoans: [Asset] {
-        assetsManager.assets.filter { $0.hasActiveLoan }
-    }
-    
-    private var totalMonthlyPayments: Double {
-        assetsWithLoans.reduce(0) { total, asset in
-            total + asset.monthlyPayment
         }
     }
 }
