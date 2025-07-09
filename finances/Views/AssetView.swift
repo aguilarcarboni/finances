@@ -188,6 +188,7 @@ struct AssetDetailView: View {
                     Button(action: { showDownPaymentDetail = true }) {
                         DetailRow(title: "Down Payment", value: "₡\(formattedNumber(asset.downPayment))")
                             .contentShape(Rectangle())
+                            .foregroundColor(.blue)
                     }
                     .buttonStyle(PlainButtonStyle())
                     .accessibilityLabel("View Down Payment Transaction Details")

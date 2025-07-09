@@ -107,7 +107,7 @@ struct ExpensesAccountView: View {
                             }
                             
                             ProgressView(value: overallProgress)
-                                .progressViewStyle(LinearProgressViewStyle(tint: overallProgress > 1.0 ? .red : .blue))
+                                .progressViewStyle(LinearProgressViewStyle(tint: overallProgress > 1.0 ? .red : .green))
                                 .scaleEffect(x: 1, y: 3, anchor: .center)
                             
                             HStack {
@@ -167,7 +167,7 @@ struct ExpensesAccountView: View {
                                 Spacer()
                                 Text("\(Int(overallIncomeProgress * 100))%")
                                     .font(.caption.monospacedDigit())
-                                    .foregroundColor(overallIncomeProgress > 1.0 ? .green : .secondary)
+                                    .foregroundColor(overallIncomeProgress > 1.0 ? .green : .red)
                             }
                         }
                     }
@@ -315,6 +315,7 @@ struct ExpensesAccountView: View {
                         x: .value("Month", item.month),
                         y: .value("Balance", item.balance)
                     )
+                    .interpolationMethod(.catmullRom)
                     .foregroundStyle(item.balance >= 0 ? .green : .red)
                     .lineStyle(StrokeStyle(lineWidth: 3))
                     
@@ -336,6 +337,11 @@ struct ExpensesAccountView: View {
                                     .font(.caption2)
                             }
                         }
+                    }
+                }
+                .chartXAxis {
+                    AxisMarks(values: .automatic(desiredCount: selectedChartFilter == .oneMonth ? 6 : 3)) { value in
+                        AxisValueLabel()
                     }
                 }
                 .padding()
@@ -441,7 +447,7 @@ struct ExpensesAccountView: View {
             formatter.dateFormat = "MMM d"
             var currentDate = start
             while currentDate < end {
-                let nextDate = calendar.date(byAdding: .day, value: 3, to: currentDate) ?? end
+                let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? end
                 intervals.append((
                     start: currentDate,
                     end: min(nextDate, end),
@@ -449,7 +455,31 @@ struct ExpensesAccountView: View {
                 ))
                 currentDate = nextDate
             }
-        default:
+        case .threeMonths:
+            formatter.dateFormat = "MMM d"
+            var currentDate = start
+            while currentDate < end {
+                let nextDate = calendar.date(byAdding: .day, value: 14, to: currentDate) ?? end
+                intervals.append((
+                    start: currentDate,
+                    end: min(nextDate, end),
+                    label: formatter.string(from: currentDate)
+                ))
+                currentDate = nextDate
+            }
+        case .sixMonths:
+            formatter.dateFormat = "MMM yyyy"
+            var currentDate = calendar.dateInterval(of: .month, for: start)?.start ?? start
+            while currentDate < end {
+                let nextDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? end
+                intervals.append((
+                    start: currentDate,
+                    end: min(nextDate, end),
+                    label: formatter.string(from: currentDate)
+                ))
+                currentDate = nextDate
+            }
+        case .oneYear:
             formatter.dateFormat = "MMM yyyy"
             var currentDate = calendar.dateInterval(of: .month, for: start)?.start ?? start
             while currentDate < end {
@@ -493,7 +523,7 @@ struct BudgetRow: View {
             }
             
             ProgressView(value: progress)
-                .progressViewStyle(LinearProgressViewStyle(tint: progress > 1.0 ? .red : .blue))
+                .progressViewStyle(LinearProgressViewStyle(tint: progress > 1.0 ? .red : .green))
                 .scaleEffect(x: 1, y: 2, anchor: .center)
         }
     }
@@ -541,8 +571,10 @@ struct TransactionRow: View {
                 Text(transaction.name)
                     .font(.subheadline)
                     .fontWeight(.medium)
+                    .foregroundColor(.primary)
                 Text(transaction.category)
                     .font(.caption)
+                    .foregroundColor(.secondary)
             }
             
             Spacer()
@@ -554,6 +586,7 @@ struct TransactionRow: View {
                     .foregroundColor(isDebit ? .red : .green)
                 Text(dateFormatter.string(from: transaction.date))
                     .font(.caption)
+                    .foregroundColor(.secondary)
             }
         }
     }
@@ -585,7 +618,7 @@ struct IncomeBudgetRow: View {
             }
             
             ProgressView(value: progress)
-                .progressViewStyle(LinearProgressViewStyle(tint: progress > 1.0 ? .green : .blue))
+                .progressViewStyle(LinearProgressViewStyle(tint: progress > 1.0 ? .green : .red))
                 .scaleEffect(x: 1, y: 2, anchor: .center)
         }
     }

@@ -85,7 +85,17 @@ struct SavingsView: View {
                     
                     self.summaryHeader
 
-                    self.growthChartSection
+                    if !savingsAccount.transactions.isEmpty {
+                        self.growthChartSection
+                    } else {
+                        Text("No savings data available")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                            .padding()
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(12)
+                            .padding(.horizontal)
+                    }
                     
                     self.emergencyFundProgressSection
                     
