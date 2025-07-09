@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct InvestmentsView: View {
-    @StateObject private var viewModel = InvestmentsViewModel()
     @ObservedObject private var investmentsAccount = InvestmentsAccount.shared
     @ObservedObject private var apiManager = IBKRAPIManager.shared
     
@@ -50,7 +49,11 @@ struct InvestmentsView: View {
                     } actions: {
                         Button("Connect to IBKR") {
                             Task {
-                                await viewModel.connectToIBKR()
+                                do {
+                                    try await investmentsAccount.connectToIBKR()
+                                } catch {
+                                    print("Error!")
+                                }
                             }
                         }
                         .buttonStyle(.borderedProminent)
@@ -73,7 +76,7 @@ struct InvestmentsView: View {
                     
                     Button(action: {
                         Task {
-                            await viewModel.refreshData()
+                            await investmentsAccount.syncWithIBKR()
                         }
                     }) {
                         Image(systemName: "arrow.clockwise")
@@ -86,7 +89,7 @@ struct InvestmentsView: View {
         .task {
             // Auto-refresh data when view appears if connected
             if apiManager.isConnected {
-                await viewModel.refreshData()
+                await investmentsAccount.syncWithIBKR()
             }
         }
     }

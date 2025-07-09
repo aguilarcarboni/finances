@@ -18,46 +18,31 @@ class AssetsManager: ObservableObject {
             type: "Computer",
             category: .tangible,
             acquisitionDate: Date(timeIntervalSince1970: 1719859200), // June 2024
-            acquisitionPrice: 871190,
-            currentMarketValue: 562948,
+            acquisitionPrice: 871_190,
+            currentMarketValue: 562_948
         )
         addAsset(macbook)
-
-        // Add the user's house (paid off loan from years ago)
-        let house = Asset(
-            name: "Family Home",
-            type: "House",
-            category: .tangible,
-            acquisitionDate: Calendar.current.date(byAdding: .year, value: -10, to: Date()) ?? Date(),
-            acquisitionPrice: 58000000, // 58 million colones original loan
-            currentMarketValue: 75000000, // Estimated current value - user can adjust
-            customDepreciationRate: 0.03, // 3% appreciation annually
-            expenseCategory: "Housing",
-            loanAmount: 58000000,
-            interestRate: 8.5, // Typical Costa Rica mortgage rate
-            loanTermYears: 20,
-            downPayment: 5000000 // Estimated down payment
-        )
-        
-        // Mark the house loan as paid off
-        var paidOffHouse = house
-        paidOffHouse.markLoanAsPaidOff(on: Calendar.current.date(byAdding: .year, value: -2, to: Date()) ?? Date())
-        addAsset(paidOffHouse)
         
         // Add the Nissan Magnite car (current loan)
+        let carAcquisitionDate = Calendar.current.date(byAdding: .month, value: -2, to: Date()) ?? Date()
+        let carLoan = Loan(
+            originalAmount: 9_733_500,
+            interestRate: 7.5,
+            termYears: 8,
+            startDate: carAcquisitionDate,
+            downPayment: 3_090_000
+        )
+
         let car = Asset(
             name: "Nissan Magnite",
             type: "Car",
             category: .tangible,
-            acquisitionDate: Calendar.current.date(byAdding: .month, value: -2, to: Date()) ?? Date(),
-            acquisitionPrice: 12823500, // 24,900 USD * 515 CRC
-            currentMarketValue: 12000000, // 22,900 USD * 515 CRC (slight depreciation)
+            acquisitionDate: carAcquisitionDate,
+            acquisitionPrice: 12_823_500, // 24,900 USD * 515 CRC
+            currentMarketValue: 12_000_000, // slight depreciation
             customDepreciationRate: -0.15, // 15% annual depreciation
-            expenseCategory: "Debt",
-            loanAmount: 9733500, // Loan amount after down payment
-            interestRate: 7.5,
-            loanTermYears: 8,
-            downPayment: 3090000 // 6,000 USD * 515 CRC
+            expenseCategory: "Car Loan",
+            loan: carLoan
         )
         addAsset(car)
     }

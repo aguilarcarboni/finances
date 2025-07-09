@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct AssetsView: View {
-    @StateObject private var viewModel = AssetsViewModel()
     @ObservedObject private var assetsManager = AssetsManager.shared
     @State private var selectedAsset: Asset?
     

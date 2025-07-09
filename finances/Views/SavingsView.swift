@@ -1,34 +1,60 @@
 import SwiftUI
 import Charts
-import Combine
 
 enum ChartTimeFilter: String, CaseIterable {
-    case twoWeeks = "2W"
+    /// Current month to date
     case oneMonth = "1M"
+    // Last 3 months starting from the current month
     case threeMonths = "3M"
+    // Last 6 months starting from the current month
     case sixMonths = "6M"
-    case oneYear = "1Y"
-    
+    // Last 12 months starting from the current month
+    case oneYear  = "12M"
+
+    /// Filters that should be presented to the user (order matters for UI)
+    static var allCases: [ChartTimeFilter] {
+        [.oneMonth, .threeMonths, .sixMonths, .oneYear]
+    }
+
+    /// Date interval for each filter
     var dateRange: (start: Date, end: Date) {
         let calendar = Calendar.current
         let now = Date()
-        let endDate = now
-        
-        let startDate: Date
+
         switch self {
-        case .twoWeeks:
-            startDate = calendar.date(byAdding: .day, value: -14, to: now) ?? now
         case .oneMonth:
-            startDate = calendar.date(byAdding: .month, value: -1, to: now) ?? now
+            // From the 1st of the current month up to today
+            let comps = calendar.dateComponents([.year, .month], from: now)
+            let start = calendar.date(from: comps) ?? now
+            return (start: start, end: now)
+
         case .threeMonths:
-            startDate = calendar.date(byAdding: .month, value: -3, to: now) ?? now
+            // From the 1st of the month two months ago up to today (3 months inclusive)
+            guard let dateThreeMonthsAgo = calendar.date(byAdding: .month, value: -2, to: now) else {
+                return (start: now, end: now)
+            }
+            let comps = calendar.dateComponents([.year, .month], from: dateThreeMonthsAgo)
+            let start = calendar.date(from: comps) ?? now
+            return (start: start, end: now)
+
         case .sixMonths:
-            startDate = calendar.date(byAdding: .month, value: -6, to: now) ?? now
+            // From the 1st of the month five months ago up to today (6 months inclusive)
+            guard let dateSixMonthsAgo = calendar.date(byAdding: .month, value: -5, to: now) else {
+                return (start: now, end: now)
+            }
+            let comps = calendar.dateComponents([.year, .month], from: dateSixMonthsAgo)
+            let start = calendar.date(from: comps) ?? now
+            return (start: start, end: now)
+
         case .oneYear:
-            startDate = calendar.date(byAdding: .year, value: -1, to: now) ?? now
+            // From the 1st of the month eleven months ago up to today (12 months inclusive)
+            guard let dateOneYearAgo = calendar.date(byAdding: .month, value: -11, to: now) else {
+                return (start: now, end: now)
+            }
+            let comps = calendar.dateComponents([.year, .month], from: dateOneYearAgo)
+            let start = calendar.date(from: comps) ?? now
+            return (start: start, end: now)
         }
-        
-        return (start: startDate, end: endDate)
     }
 }
 
@@ -43,9 +69,14 @@ extension NumberFormatter {
 }
 
 struct SavingsView: View {
-    @StateObject private var viewModel = SavingsViewModel()
     @ObservedObject private var savingsAccount = SavingsAccount.shared
-    @State private var selectedChartFilter: ChartTimeFilter = .threeMonths
+    @ObservedObject private var expensesAccount = ExpensesAccount.shared
+    @State private var selectedChartFilter: ChartTimeFilter = .oneMonth
+    
+    // Computed transfer-validation status
+    private var transferValidation: (isValid: Bool, message: String) {
+        savingsAccount.validateTransfersWithExpenses(expensesAccount)
+    }
     
     var body: some View {
         NavigationStack {
@@ -84,12 +115,12 @@ private extension SavingsView {
                 Spacer()
                 // Transfer Validation Status
                 HStack(spacing: 4) {
-                    Image(systemName: viewModel.transferValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                        .foregroundColor(viewModel.transferValidation.isValid ? .green : .orange)
+                    Image(systemName: transferValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                        .foregroundColor(transferValidation.isValid ? .green : .orange)
                         .font(.caption)
-                    Text(viewModel.transferValidation.isValid ? "Validated" : "Check Transfers")
+                    Text(transferValidation.isValid ? "Validated" : "Check Transfers")
                         .font(.caption)
-                        .foregroundColor(viewModel.transferValidation.isValid ? .green : .orange)
+                        .foregroundColor(transferValidation.isValid ? .green : .orange)
                 }
             }
 
@@ -323,7 +354,7 @@ private extension SavingsView {
         guard !filteredTransactions.isEmpty else {
             // If no transactions in range, show the starting balance
             let formatter = DateFormatter()
-            formatter.dateFormat = selectedChartFilter == .twoWeeks ? "MMM d" : "MMM yyyy"
+            formatter.dateFormat = selectedChartFilter == .oneMonth ? "MMM d" : "MMM yyyy"
             result.append((month: formatter.string(from: dateRange.start), balance: max(runningBalance, 0)))
             return result
         }
@@ -358,18 +389,6 @@ private extension SavingsView {
         let formatter = DateFormatter()
         
         switch selectedChartFilter {
-        case .twoWeeks:
-            formatter.dateFormat = "MMM d"
-            var currentDate = start
-            while currentDate < end {
-                let nextDate = calendar.date(byAdding: .day, value: 2, to: currentDate) ?? end
-                intervals.append((
-                    start: currentDate,
-                    end: min(nextDate, end),
-                    label: formatter.string(from: currentDate)
-                ))
-                currentDate = nextDate
-            }
         case .oneMonth:
             formatter.dateFormat = "MMM d"
             var currentDate = start
@@ -403,7 +422,7 @@ private extension SavingsView {
         let range = selectedChartFilter.dateRange
         let formatter = DateFormatter()
         switch selectedChartFilter {
-        case .twoWeeks, .oneMonth:
+        case .oneMonth:
             formatter.dateFormat = "d MMM yyyy"
         default:
             formatter.dateFormat = "MMM yyyy"

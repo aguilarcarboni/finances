@@ -14,37 +14,7 @@ enum AssetCategory: String, CaseIterable {
     }
 }
 
-enum LoanStatus: String, CaseIterable {
-    case noLoan = "No Loan"
-    case activeLoan = "Active Loan"
-    case paidOff = "Paid Off"
-}
-
-struct LoanDetails {
-    var originalAmount: Double
-    var interestRate: Double
-    var termYears: Int
-    var startDate: Date
-    var downPayment: Double
-    var status: LoanStatus
-    var paidOffDate: Date?
-    
-    init(originalAmount: Double, interestRate: Double, termYears: Int, startDate: Date, downPayment: Double = 0) {
-        self.originalAmount = originalAmount
-        self.interestRate = interestRate
-        self.termYears = termYears
-        self.startDate = startDate
-        self.downPayment = downPayment
-        self.status = .activeLoan
-        self.paidOffDate = nil
-    }
-    
-    mutating func markAsPaidOff(on date: Date = Date()) {
-        self.status = .paidOff
-        self.paidOffDate = date
-    }
-}
-
+// NOTE: `Loan` (moved to a dedicated file) now encapsulates these properties and behaviours.
 struct RevenueDetails {
     var monthlyRevenueTarget: Double
     var revenueGenerationRate: Double // Probability of generating revenue (0.0 to 1.0)
@@ -69,13 +39,36 @@ struct Asset: Identifiable {
     var currentMarketValue: Double?
     var customDepreciationRate: Double?
     var expenseCategory: String // Category name in ExpensesAccount for tracking actual payments
-    var loan: LoanDetails?
+    var loan: Loan?
     var revenue: RevenueDetails?
     
-    // MARK: - Convenience Initializers
-    
-    // For assets without loans or revenue
-    init(id: UUID = UUID(), name: String, type: String, category: AssetCategory, acquisitionDate: Date, acquisitionPrice: Double, currentMarketValue: Double? = nil, customDepreciationRate: Double? = nil, expenseCategory: String = "") {
+    // MARK: - Unified Initialiser
+    /// Creates a new `Asset`.
+    /// - Parameters:
+    ///   - id: Optional explicit identifier (defaults to a new `UUID`).
+    ///   - name: Human-readable name for the asset.
+    ///   - type: Free-form type description (e.g. "Car", "Computer").
+    ///   - category: Tangible vs Intangible.
+    ///   - acquisitionDate: Date the asset was acquired.
+    ///   - acquisitionPrice: Purchase price.
+    ///   - currentMarketValue: Optional latest market valuation.
+    ///   - customDepreciationRate: Optional custom annual appreciation/-depreciation rate.
+    ///   - expenseCategory: Category name used in the Expenses account.
+    ///   - loan: Optional associated `Loan` object. `nil` means the asset was bought outright.
+    ///   - revenue: Optional revenue details if the asset generates income.
+    init(
+        id: UUID = UUID(),
+        name: String,
+        type: String,
+        category: AssetCategory,
+        acquisitionDate: Date,
+        acquisitionPrice: Double,
+        currentMarketValue: Double? = nil,
+        customDepreciationRate: Double? = nil,
+        expenseCategory: String = "",
+        loan: Loan? = nil,
+        revenue: RevenueDetails? = nil
+    ) {
         self.id = id
         self.name = name
         self.type = type
@@ -85,73 +78,8 @@ struct Asset: Identifiable {
         self.currentMarketValue = currentMarketValue
         self.customDepreciationRate = customDepreciationRate
         self.expenseCategory = expenseCategory
-        self.loan = nil
-        self.revenue = nil
-    }
-    
-    // For assets with loans
-    init(id: UUID = UUID(), name: String, type: String, category: AssetCategory, acquisitionDate: Date, acquisitionPrice: Double, currentMarketValue: Double? = nil, customDepreciationRate: Double? = nil, expenseCategory: String = "", loanAmount: Double, interestRate: Double, loanTermYears: Int, downPayment: Double = 0) {
-        self.id = id
-        self.name = name
-        self.type = type
-        self.category = category
-        self.acquisitionDate = acquisitionDate
-        self.acquisitionPrice = acquisitionPrice
-        self.currentMarketValue = currentMarketValue
-        self.customDepreciationRate = customDepreciationRate
-        self.expenseCategory = expenseCategory
-        self.loan = LoanDetails(
-            originalAmount: loanAmount,
-            interestRate: interestRate,
-            termYears: loanTermYears,
-            startDate: acquisitionDate,
-            downPayment: downPayment
-        )
-        self.revenue = nil
-    }
-    
-    // For revenue generating assets
-    init(id: UUID = UUID(), name: String, type: String, category: AssetCategory, acquisitionDate: Date, acquisitionPrice: Double, currentMarketValue: Double? = nil, customDepreciationRate: Double? = nil, expenseCategory: String = "", monthlyRevenueTarget: Double, revenueGenerationRate: Double = 0.8, variabilityFactor: Double = 0.3) {
-        self.id = id
-        self.name = name
-        self.type = type
-        self.category = category
-        self.acquisitionDate = acquisitionDate
-        self.acquisitionPrice = acquisitionPrice
-        self.currentMarketValue = currentMarketValue
-        self.customDepreciationRate = customDepreciationRate
-        self.expenseCategory = expenseCategory
-        self.loan = nil
-        self.revenue = RevenueDetails(
-            monthlyTarget: monthlyRevenueTarget,
-            generationRate: revenueGenerationRate,
-            variabilityFactor: variabilityFactor
-        )
-    }
-    
-    // For assets with both loans and revenue generation
-    init(id: UUID = UUID(), name: String, type: String, category: AssetCategory, acquisitionDate: Date, acquisitionPrice: Double, currentMarketValue: Double? = nil, customDepreciationRate: Double? = nil, expenseCategory: String = "", loanAmount: Double, interestRate: Double, loanTermYears: Int, downPayment: Double = 0, monthlyRevenueTarget: Double, revenueGenerationRate: Double = 0.8, variabilityFactor: Double = 0.3) {
-        self.id = id
-        self.name = name
-        self.type = type
-        self.category = category
-        self.acquisitionDate = acquisitionDate
-        self.acquisitionPrice = acquisitionPrice
-        self.currentMarketValue = currentMarketValue
-        self.customDepreciationRate = customDepreciationRate
-        self.expenseCategory = expenseCategory
-        self.loan = LoanDetails(
-            originalAmount: loanAmount,
-            interestRate: interestRate,
-            termYears: loanTermYears,
-            startDate: acquisitionDate,
-            downPayment: downPayment
-        )
-        self.revenue = RevenueDetails(
-            monthlyTarget: monthlyRevenueTarget,
-            generationRate: revenueGenerationRate,
-            variabilityFactor: variabilityFactor
-        )
+        self.loan = loan
+        self.revenue = revenue
     }
     
     // MARK: - Basic Properties
@@ -207,32 +135,13 @@ struct Asset: Identifiable {
         loan?.termYears ?? 0
     }
     
+    /// Convenience wrapper around the underlying `Loan` model.
     var monthlyPayment: Double {
-        guard let loan = loan, loan.status == .activeLoan, loan.originalAmount > 0, loan.interestRate > 0 else { return 0 }
-        
-        let monthlyRate = loan.interestRate / 100 / 12
-        let numberOfPayments = Double(loan.termYears * 12)
-        
-        let numerator = loan.originalAmount * monthlyRate * pow(1 + monthlyRate, numberOfPayments)
-        let denominator = pow(1 + monthlyRate, numberOfPayments) - 1
-        
-        return numerator / denominator
+        loan?.monthlyPayment ?? 0
     }
     
     var remainingLoanBalance: Double {
-        guard let loan = loan, loan.status == .activeLoan else { return 0 }
-        
-        let totalMonths = loan.termYears * 12
-        let monthlyRate = loan.interestRate / 100 / 12
-        
-        guard monthsOwned < totalMonths, loan.interestRate > 0 else { return 0 }
-        
-        let remainingPayments = Double(totalMonths - monthsOwned)
-        
-        let numerator = monthlyPayment * (pow(1 + monthlyRate, remainingPayments) - 1)
-        let denominator = monthlyRate * pow(1 + monthlyRate, remainingPayments)
-        
-        return numerator / denominator
+        loan?.remainingBalance ?? 0
     }
     
     var equity: Double {

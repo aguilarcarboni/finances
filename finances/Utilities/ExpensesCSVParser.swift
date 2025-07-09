@@ -69,7 +69,7 @@ struct ExpensesCSVParser {
                 continue // Skip zero-value rows
             }
 
-            let category = categorize(description: description)
+            let category = categorize(description: description, type: type)
             let transaction = Transaction(name: description,
                                           category: category,
                                           amount: amount,
@@ -81,19 +81,30 @@ struct ExpensesCSVParser {
         return transactions
     }
 
-    /// Basic heuristic categorization based on keywords in the transaction description.
-    private static func categorize(description: String) -> String {
+    /// Extended categorization that takes the transaction type into account so we can
+    /// differentiate regular expenses from different kinds of income.
+    private static func categorize(description: String, type: TransactionType) -> String {
         let lower = description.lowercased()
-        if lower.contains("uber") || lower.contains("taxi") || lower.contains("gasoline") || lower.contains("gasolina") {
+
+        // CREDIT-specific categorisation (income)
+        if type == .credit {
+            // 1. Salary / payroll related deposits
+            if lower.contains("atm") || lower.contains("2q") || lower.contains("1q") {
+                return "Salary"
+            }
+            // 3. Everything else that is a credit goes to Other
+            return "Other"
+        }
+
+        // DEBIT (expense) heuristics – original logic retained
+        if lower.contains("delta") || lower.contains("servicentro") {
             return "Transportation"
-        } else if lower.contains("netflix") || lower.contains("spotify") || lower.contains("gym") {
+        } else if lower.contains("openai") || lower.contains("cursor") || lower.contains("seguro beld") || lower.contains("compass") {
             return "Subscriptions"
-        } else if lower.contains("loan") || lower.contains("payment") || lower.contains("pago") {
+        } else if lower.contains("pago") {
             return "Debt"
-        } else if lower.contains("savings") || lower.contains("ahorro") {
+        } else if lower.contains("ahorro") {
             return "Savings"
-        } else if lower.contains("walmart") || lower.contains("automercado") || lower.contains("pali") || lower.contains("maxi") {
-            return "Groceries"
         } else {
             return "Misc"
         }

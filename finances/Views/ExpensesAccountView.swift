@@ -1,11 +1,9 @@
 import SwiftUI
 import Charts
-import Combine
 
 struct ExpensesAccountView: View {
-    @StateObject private var viewModel = ExpensesAccountViewModel()
     @ObservedObject private var account = ExpensesAccount.shared
-    @State private var selectedChartFilter: ChartTimeFilter = .threeMonths
+    @State private var selectedChartFilter: ChartTimeFilter = .oneMonth
 
     // MARK: - Filtered Transaction Data (based on selected time filter)
     private var currentMonthTransactions: [Transaction] {
@@ -31,6 +29,11 @@ struct ExpensesAccountView: View {
     
     private func currentMonthDebitsForCategory(_ categoryName: String) -> Double {
         currentMonthDebits.filter { $0.category == categoryName }.reduce(0) { $0 + $1.amount }
+    }
+    
+    // NEW: Helper for income budget section
+    private func currentMonthCreditsForCategory(_ categoryName: String) -> Double {
+        currentMonthCredits.filter { $0.category == categoryName }.reduce(0) { $0 + $1.amount }
     }
 
     var body: some View {
@@ -123,6 +126,56 @@ struct ExpensesAccountView: View {
                     .cornerRadius(20)
                     .padding(.horizontal)
 
+                    // NEW: Income vs Expected Section
+                    VStack(alignment: .leading, spacing: 20) {
+                        ForEach(account.incomeBudget) { category in
+                            let actualIncome = currentMonthCreditsForCategory(category.name)
+                            IncomeBudgetRow(
+                                category: category.name,
+                                currentAmount: actualIncome,
+                                maxAmount: category.budget,
+                                progress: category.budget > 0 ? actualIncome / category.budget : 0
+                            )
+                        }
+                        
+                        Divider()
+                            .padding(.vertical, 5)
+                        
+                        let totalIncomeBudget = account.totalIncomeBudget
+                        let totalIncome = currentMonthTotalCredits
+                        let overallIncomeProgress = totalIncomeBudget > 0 ? totalIncome / totalIncomeBudget : 0
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Total Expected Income")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                Spacer()
+                                Text("₡\(Int(totalIncome).formatted()) / ₡\(Int(totalIncomeBudget).formatted())")
+                                    .font(.headline.monospacedDigit())
+                                    .fontWeight(.semibold)
+                            }
+                            
+                            ProgressView(value: overallIncomeProgress)
+                                .progressViewStyle(LinearProgressViewStyle(tint: overallIncomeProgress > 1.0 ? .green : .red))
+                                .scaleEffect(x: 1, y: 3, anchor: .center)
+                            
+                            HStack {
+                                Text("Income vs Expectation")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text("\(Int(overallIncomeProgress * 100))%")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundColor(overallIncomeProgress > 1.0 ? .green : .secondary)
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(20)
+                    .padding(.horizontal)
+
                     // All Debits (Expenses) Section
                     VStack(alignment: .leading, spacing: 15) {
                         Text("Expenses")
@@ -144,7 +197,9 @@ struct ExpensesAccountView: View {
                             .padding()
                         } else {
                             ForEach(currentMonthDebits.sorted { $0.date > $1.date }) { transaction in
-                                TransactionRow(transaction: transaction, isDebit: true)
+                                NavigationLink(destination: TransactionDetailView(transaction: transaction)) {
+                                    TransactionRow(transaction: transaction, isDebit: true)
+                                }
                             }
                         }
                         
@@ -188,7 +243,9 @@ struct ExpensesAccountView: View {
                             .padding()
                         } else {
                             ForEach(currentMonthCredits.sorted { $0.date > $1.date }) { transaction in
-                                TransactionRow(transaction: transaction, isDebit: false)
+                                NavigationLink(destination: TransactionDetailView(transaction: transaction)) {
+                                    TransactionRow(transaction: transaction, isDebit: false)
+                                }
                             }
                         }
                         
@@ -220,7 +277,7 @@ struct ExpensesAccountView: View {
         let range = selectedChartFilter.dateRange
         let formatter = DateFormatter()
         switch selectedChartFilter {
-        case .twoWeeks, .oneMonth:
+        case .oneMonth:
             formatter.dateFormat = "d MMM yyyy"
         default:
             formatter.dateFormat = "MMM yyyy"
@@ -345,7 +402,7 @@ struct ExpensesAccountView: View {
         guard !filteredTransactions.isEmpty else {
             // If no transactions in range, show the starting balance
             let formatter = DateFormatter()
-            formatter.dateFormat = selectedChartFilter == .twoWeeks ? "MMM d" : "MMM yyyy"
+            formatter.dateFormat = selectedChartFilter == .oneMonth ? "MMM d" : "MMM yyyy"
             result.append((month: formatter.string(from: dateRange.start), balance: runningBalance))
             return result
         }
@@ -380,18 +437,6 @@ struct ExpensesAccountView: View {
         let formatter = DateFormatter()
         
         switch selectedChartFilter {
-        case .twoWeeks:
-            formatter.dateFormat = "MMM d"
-            var currentDate = start
-            while currentDate < end {
-                let nextDate = calendar.date(byAdding: .day, value: 2, to: currentDate) ?? end
-                intervals.append((
-                    start: currentDate,
-                    end: min(nextDate, end),
-                    label: formatter.string(from: currentDate)
-                ))
-                currentDate = nextDate
-            }
         case .oneMonth:
             formatter.dateFormat = "MMM d"
             var currentDate = start
@@ -510,6 +555,38 @@ struct TransactionRow: View {
                 Text(dateFormatter.string(from: transaction.date))
                     .font(.caption)
             }
+        }
+    }
+}
+
+struct IncomeBudgetRow: View {
+    let category: String
+    let currentAmount: Double
+    let maxAmount: Double
+    let progress: Double
+    
+    private var currencyFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencySymbol = "₡"
+        formatter.maximumFractionDigits = 0
+        return formatter
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(category)
+                    .font(.headline)
+                Spacer()
+                Text("\(currencyFormatter.string(from: NSNumber(value: currentAmount)) ?? "") / \(currencyFormatter.string(from: NSNumber(value: maxAmount)) ?? "")")
+                    .font(.subheadline.monospacedDigit())
+                    .foregroundColor(.secondary)
+            }
+            
+            ProgressView(value: progress)
+                .progressViewStyle(LinearProgressViewStyle(tint: progress > 1.0 ? .green : .blue))
+                .scaleEffect(x: 1, y: 2, anchor: .center)
         }
     }
 }

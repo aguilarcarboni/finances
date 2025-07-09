@@ -2,20 +2,52 @@ import SwiftUI
 import Foundation
 import Combine
 
-
-
 class ExpensesAccount: ObservableObject, Account {
     @Published var transactions: [Transaction] = []
     
     static let shared = ExpensesAccount()
 
     @Published var budget: [BudgetCategory] = [
-        BudgetCategory(name: "Debt", budget: 90000),
-        BudgetCategory(name: "Subscriptions", budget: 50000),
-        BudgetCategory(name: "Transportation", budget: 40000),
-        BudgetCategory(name: "Savings", budget: 100000),
-        BudgetCategory(name: "Misc", budget: 65000),
+        BudgetCategory(name: "Car Loan", budget: 180000),
+        BudgetCategory(name: "Subscriptions", budget: 100000),
+        BudgetCategory(name: "Transportation", budget: 80000),
+        BudgetCategory(name: "Savings", budget: 200000),
+        BudgetCategory(name: "Misc", budget: 130000),
     ]
+    
+    // NEW: Expected income ("income budget") per income category
+    @Published var incomeBudget: [BudgetCategory] = [
+        // Set an expected amount for your recurring income categories. Adjust as needed in the UI.
+        BudgetCategory(name: "Salary", budget: 680000),
+        BudgetCategory(name: "Other", budget: 0)
+    ]
+    
+    // Total of expected income for the period
+    var totalIncomeBudget: Double {
+        incomeBudget.reduce(0) { $0 + $1.budget }
+    }
+
+    // Helper to retrieve expected income for a specific category
+    func incomeBudgetForCategory(_ categoryName: String) -> Double {
+        incomeBudget.first { $0.name == categoryName }?.budget ?? 0
+    }
+
+    // Convenience helpers to maintain the income budget list
+    func updateIncomeBudget(for categoryName: String, newBudget: Double) {
+        if let index = incomeBudget.firstIndex(where: { $0.name == categoryName }) {
+            incomeBudget[index] = BudgetCategory(name: categoryName, budget: newBudget)
+        }
+    }
+
+    func addIncomeBudgetCategory(_ category: BudgetCategory) {
+        if !incomeBudget.contains(where: { $0.name == category.name }) {
+            incomeBudget.append(category)
+        }
+    }
+
+    func removeIncomeBudgetCategory(_ categoryName: String) {
+        incomeBudget.removeAll { $0.name == categoryName }
+    }
     
     var totalBudget: Double {
         budget.reduce(0) { $0 + $1.budget }

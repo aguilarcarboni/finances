@@ -47,7 +47,7 @@ struct AssetDetailView: View {
     @ObservedObject private var expensesAccount = ExpensesAccount.shared
     
     @State private var forecastMonths: Double = 12
-    @State private var selectedChartFilter: ChartTimeFilter = .sixMonths
+    @State private var selectedChartFilter: ChartTimeFilter = .oneMonth
     
     var body: some View {
         ScrollView {
@@ -55,15 +55,16 @@ struct AssetDetailView: View {
                 // Base Cards - Always Present
                 assetHeaderCard
                 assetDetailsCard
-                financialOverviewCard
-                valueOverTimeChartCard
-                
-                // Revenue tracking for revenue-generating assets
-                if asset.isRevenueGenerating {
-                    revenueTrackingCard
+                // Show loan details in a separate card when applicable
+                if asset.hasLoan {
+                    loanDetailsCard
                 }
-                
                 performanceSummaryCard
+                valueOverTimeChartCard
+                // Payment comparison for loan assets
+                if asset.hasActiveLoan {
+                    paymentComparisonCard
+                }
             }
             .padding()
         }
@@ -151,183 +152,20 @@ struct AssetDetailView: View {
                     DetailRow(title: "Target Achievement", value: String(format: "%.1f", asset.revenueTargetAchievementPercentage) + "%")
                 }
                 
-                // Modular content based on asset type and loan status
-                if asset.hasLoan {
-                    DetailRow(title: "Down Payment", value: "₡\(formattedNumber(asset.downPayment))")
-                    DetailRow(title: "Interest Rate", value: "\(formattedNumber(asset.interestRate, decimals: 1))%")
-                    DetailRow(title: "Loan Term", value: "\(asset.loanTermYears) years")
-                    
-                    if asset.hasActiveLoan {
-                        DetailRow(title: "Monthly Payment", value: "₡\(formattedNumber(asset.monthlyPayment))")
-                        DetailRow(title: "Remaining Balance", value: "₡\(formattedNumber(asset.remainingLoanBalance))")
-                        DetailRow(title: "Loan Progress", value: String(format: "%.1f", loanProgressPercentage) + "%")
-                    } else if asset.loanStatus == .paidOff {
-                        if let paidOffDate = asset.loan?.paidOffDate {
-                            DetailRow(title: "Paid Off Date", value: formattedDate(paidOffDate))
-                        }
-                        DetailRow(title: "Loan Status", value: "Paid Off ✓")
-                    }
-                }
+                // Loan details have been moved to the dedicated card below
                 
                 // Special properties for intangible assets
                 if asset.category == .intangible && asset.customDepreciationRate != nil {
                     DetailRow(title: "Expected Annual Growth", value: String(format: "%.1f", asset.customDepreciationRate! * 100) + "%")
                 }
-            }
-        }
-        .padding()
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
-    
-    private var financialOverviewCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text(financialOverviewTitle)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-                
-                Image(systemName: financialOverviewIcon)
-                    .font(.title2)
-                    .foregroundStyle(financialOverviewIconColor)
-            }
-            
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 16) {
-                
-                ForEach(financialMetrics, id: \.title) { metric in
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Image(systemName: metric.icon)
-                                .foregroundStyle(metric.color)
-                                .font(.title3)
-                            
-                            Spacer()
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(metric.title)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            
-                            Text(metric.formattedValue)
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(metric.color)
-                            
-                            Text(metric.subtitle)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
+
+                // Financial metrics for assets without loans, displayed as detail rows
+                if !asset.hasLoan {
+                    Divider()
+                    ForEach(financialMetrics, id: \.title) { metric in
+                        let valueText = metric.title == "Risk Level" ? metric.subtitle : metric.formattedValue
+                        DetailRow(title: metric.title, value: valueText)
                     }
-                    .padding()
-                    .background(.regularMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-            }
-            
-            // Additional content based on asset type
-            if asset.hasActiveLoan {
-                activeLoanAdditionalContent
-            } else if asset.loanStatus == .paidOff {
-                paidOffLoanAdditionalContent
-            }
-        }
-        .padding()
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
-    
-    private var valueOverTimeChartCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Value Over Time")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
-                    Text("Historical and projected value")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                
-                Spacer()
-                
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(.green)
-                        .frame(width: 8, height: 8)
-                    Text("Current")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            
-            Chart {
-                // Projected value line
-                ForEach(valueProjectionData) { dataPoint in
-                    LineMark(
-                        x: .value("Year", dataPoint.year),
-                        y: .value("Value", dataPoint.value)
-                    )
-                    .foregroundStyle(.blue.opacity(0.7))
-                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 3]))
-                    
-                    AreaMark(
-                        x: .value("Year", dataPoint.year),
-                        y: .value("Value", dataPoint.value)
-                    )
-                    .foregroundStyle(.blue.opacity(0.1))
-                }
-                
-                // Current position marker
-                PointMark(
-                    x: .value("Year", asset.yearsOwned),
-                    y: .value("Value", asset.currentValue)
-                )
-                .foregroundStyle(.green)
-                .symbolSize(100)
-                
-                // Current position annotation
-                RuleMark(x: .value("Year", asset.yearsOwned))
-                    .foregroundStyle(.green.opacity(0.5))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
-                    .annotation(position: .top) {
-                        Text("Now")
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.green)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(.green.opacity(0.1))
-                            .clipShape(Capsule())
-                    }
-            }
-            .frame(height: 200)
-            .chartYAxis {
-                AxisMarks(position: .leading) { value in
-                    AxisValueLabel {
-                        if let doubleValue = value.as(Double.self) {
-                            Text("₡" + String(format: "%.1f", doubleValue/1000000) + "M")
-                                .font(.caption)
-                        }
-                    }
-                    AxisGridLine()
-                }
-            }
-            .chartXAxis {
-                AxisMarks { value in
-                    AxisValueLabel {
-                        if let intValue = value.as(Int.self) {
-                            Text("\(intValue)y")
-                                .font(.caption)
-                        }
-                    }
-                    AxisGridLine()
                 }
             }
         }
@@ -336,126 +174,37 @@ struct AssetDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
     
-    private var revenueTrackingCard: some View {
+    // MARK: - Loan Details Card
+
+    private var loanDetailsCard: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Revenue Performance")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
-                    Text("Target vs Actual Monthly Revenue")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                
-                Spacer()
-                
-                HStack(spacing: 8) {
-                    HStack(spacing: 4) {
-                        Rectangle()
-                            .fill(.blue)
-                            .frame(width: 12, height: 3)
-                        Text("Target")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+            Text(asset.loanStatus == .paidOff ? "Loan Summary" : "Loan Details")
+                .font(.headline)
+                .fontWeight(.semibold)
+
+            VStack(spacing: 12) {
+                DetailRow(title: "Down Payment", value: "₡\(formattedNumber(asset.downPayment))")
+                DetailRow(title: "Interest Rate", value: "\(formattedNumber(asset.interestRate, decimals: 1))%")
+                DetailRow(title: "Loan Term", value: "\(asset.loanTermYears) years")
+
+                if asset.hasActiveLoan {
+                    DetailRow(title: "Monthly Payment", value: "₡\(formattedNumber(asset.monthlyPayment))")
+                    DetailRow(title: "Remaining Balance", value: "₡\(formattedNumber(asset.remainingLoanBalance))")
+                    DetailRow(title: "Loan Progress", value: String(format: "%.1f", loanProgressPercentage) + "%")
+                } else if asset.loanStatus == .paidOff {
+                    if let paidOffDate = asset.loan?.paidOffDate {
+                        DetailRow(title: "Paid Off Date", value: formattedDate(paidOffDate))
                     }
-                    
-                    HStack(spacing: 4) {
-                        Rectangle()
-                            .fill(.green)
-                            .frame(width: 12, height: 3)
-                        Text("Actual")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
+                    DetailRow(title: "Loan Status", value: "Paid Off ✓")
                 }
             }
-            
-            let revenueData = getRevenueChartData()
-            
-            if !revenueData.isEmpty {
-                Chart(revenueData) { dataPoint in
-                    // Target line
-                    LineMark(
-                        x: .value("Month", dataPoint.month),
-                        y: .value("Target", dataPoint.target)
-                    )
-                    .foregroundStyle(.blue)
-                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 3]))
-                    
-                    // Actual revenue bars
-                    BarMark(
-                        x: .value("Month", dataPoint.month),
-                        y: .value("Actual", dataPoint.actual)
-                    )
-                    .foregroundStyle(.green.opacity(0.7))
-                    .cornerRadius(4)
-                    
-                    // Actual revenue points
-                    PointMark(
-                        x: .value("Month", dataPoint.month),
-                        y: .value("Actual", dataPoint.actual)
-                    )
-                    .foregroundStyle(.green)
-                    .symbolSize(60)
-                }
-                .frame(height: 250)
-                .chartYAxis {
-                    AxisMarks { value in
-                        AxisValueLabel {
-                            if let revenue = value.as(Double.self) {
-                                Text("₡\(Int(revenue/1000))K")
-                                    .font(.caption2)
-                            }
-                        }
-                    }
-                }
-                .chartXAxis {
-                    AxisMarks { value in
-                        AxisValueLabel {
-                            if let month = value.as(String.self) {
-                                Text(month)
-                                    .font(.caption2)
-                                    .rotationEffect(.degrees(-45))
-                            }
-                        }
-                    }
-                }
-            } else {
-                ContentUnavailableView(
-                    "No Revenue Data",
-                    systemImage: "chart.bar",
-                    description: Text("Start generating revenue to see performance tracking")
-                )
-                .frame(height: 250)
+
+            // Financial metrics for loaned assets, displayed as detail rows
+            Divider()
+            ForEach(financialMetrics, id: \.title) { metric in
+                let valueText = metric.title == "Risk Level" ? metric.subtitle : metric.formattedValue
+                DetailRow(title: metric.title, value: valueText)
             }
-            
-            // Revenue performance summary
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Achievement Rate")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(String(format: "%.1f", asset.revenueTargetAchievementPercentage) + "%")
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(revenuePerformanceColor)
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text("Performance")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(asset.monthlyRevenuePerformance)
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(revenuePerformanceColor)
-                }
-            }
-            .padding(.top, 8)
         }
         .padding()
         .background(.regularMaterial)
@@ -712,46 +461,6 @@ struct AssetDetailView: View {
     }
     
     @ViewBuilder
-    private var activeLoanAdditionalContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Loan Analysis")
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundStyle(.secondary)
-            
-            // Payoff scenarios
-            ForEach([50000, 100000, 200000], id: \.self) { extraPayment in
-                let analysis = asset.payoffAnalysis(extraPayment: Double(extraPayment))
-                
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Extra ₡\(formattedNumber(Double(extraPayment)))/month")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                        
-                        HStack(spacing: 12) {
-                            Text("Save \(analysis.monthsSaved) months")
-                                .font(.caption2)
-                                .foregroundStyle(.blue)
-                            
-                            Text("Save ₡\(formattedNumber(analysis.interestSaved))")
-                                .font(.caption2)
-                                .foregroundStyle(.green)
-                        }
-                    }
-                    
-                    Spacer()
-                }
-                
-                if extraPayment != 200000 {
-                    Divider()
-                }
-            }
-        }
-        .padding(.top, 8)
-    }
-    
-    @ViewBuilder
     private var paidOffLoanAdditionalContent: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -860,6 +569,212 @@ struct AssetDetailView: View {
         }
     }
     
+    private func getPaymentComparisonData() -> [PaymentComparisonDataPoint] {
+        guard asset.hasLoan, asset.monthlyPayment > 0 else { return [] }
+        var result: [PaymentComparisonDataPoint] = []
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM"
+        let monthsToShow = 12
+        for i in stride(from: monthsToShow - 1, through: 0, by: -1) {
+            guard let monthDate = calendar.date(byAdding: .month, value: -i, to: Date()) else { continue }
+            if monthDate < asset.acquisitionDate { continue }
+            let monthString = formatter.string(from: monthDate)
+            let expected = asset.monthlyPayment
+            let actual = expensesAccount.transactions
+                .filter { transaction in
+                    transaction.type == .debit &&
+                    transaction.category == asset.expenseCategory &&
+                    calendar.isDate(transaction.date, equalTo: monthDate, toGranularity: .month)
+                }
+                .reduce(0) { $0 + $1.amount }
+            result.append(PaymentComparisonDataPoint(periodName: monthString, amount: expected, type: "Expected"))
+            result.append(PaymentComparisonDataPoint(periodName: monthString, amount: actual, type: "Actual"))
+        }
+        return result
+    }
+
+        private var valueOverTimeChartCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Value Over Time")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                    
+                    Text("Historical and projected value")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+                
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(.green)
+                        .frame(width: 8, height: 8)
+                    Text("Current")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            
+            Chart {
+                // Projected value line
+                ForEach(valueProjectionData) { dataPoint in
+                    LineMark(
+                        x: .value("Year", dataPoint.year),
+                        y: .value("Value", dataPoint.value)
+                    )
+                    .foregroundStyle(.blue.opacity(0.7))
+                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 3]))
+                    
+                    AreaMark(
+                        x: .value("Year", dataPoint.year),
+                        y: .value("Value", dataPoint.value)
+                    )
+                    .foregroundStyle(.blue.opacity(0.1))
+                }
+                
+                // Current position marker
+                PointMark(
+                    x: .value("Year", asset.yearsOwned),
+                    y: .value("Value", asset.currentValue)
+                )
+                .foregroundStyle(.green)
+                .symbolSize(100)
+                
+                // Current position annotation
+                RuleMark(x: .value("Year", asset.yearsOwned))
+                    .foregroundStyle(.green.opacity(0.5))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
+                    .annotation(position: .top) {
+                        Text("Now")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.green)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(.green.opacity(0.1))
+                            .clipShape(Capsule())
+                    }
+            }
+            .frame(height: 200)
+            .chartYAxis {
+                AxisMarks(position: .leading) { value in
+                    AxisValueLabel {
+                        if let doubleValue = value.as(Double.self) {
+                            Text("₡" + String(format: "%.1f", doubleValue/1000000) + "M")
+                                .font(.caption)
+                        }
+                    }
+                    AxisGridLine()
+                }
+            }
+            .chartXAxis {
+                AxisMarks { value in
+                    AxisValueLabel {
+                        if let intValue = value.as(Int.self) {
+                            Text("\(intValue)y")
+                                .font(.caption)
+                        }
+                    }
+                    AxisGridLine()
+                }
+            }
+        }
+        .padding()
+        .background(.regularMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+        private var paymentComparisonCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Payment Activity")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                    Text("Expected vs Actual Payments")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                HStack(spacing: 8) {
+                    HStack(spacing: 4) {
+                        Rectangle()
+                            .fill(.blue)
+                            .frame(width: 12, height: 3)
+                        Text("Expected")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    HStack(spacing: 4) {
+                        Rectangle()
+                            .fill(.green)
+                            .frame(width: 12, height: 3)
+                        Text("Actual")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            let paymentData = getPaymentComparisonData()
+            if !paymentData.isEmpty {
+                Chart(paymentData) { point in
+                    if point.type == "Expected" {
+                        LineMark(
+                            x: .value("Month", point.periodName),
+                            y: .value("Amount", point.amount)
+                        )
+                        .interpolationMethod(.catmullRom)
+                        .foregroundStyle(.blue)
+                        .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 3]))
+                    } else {
+                        BarMark(
+                            x: .value("Month", point.periodName),
+                            y: .value("Amount", point.amount)
+                        )
+                        .foregroundStyle(.green.opacity(0.7))
+                        .cornerRadius(4)
+                    }
+                }
+                .frame(height: 250)
+                .chartYAxis {
+                    AxisMarks { value in
+                        AxisValueLabel {
+                            if let amount = value.as(Double.self) {
+                                Text("₡\(Int(amount/1000))K")
+                                    .font(.caption2)
+                            }
+                        }
+                    }
+                }
+                .chartXAxis {
+                    AxisMarks { value in
+                        AxisValueLabel {
+                            if let month = value.as(String.self) {
+                                Text(month)
+                                    .font(.caption2)
+                                    .rotationEffect(.degrees(-45))
+                            }
+                        }
+                    }
+                }
+            } else {
+                ContentUnavailableView(
+                    "No Payment Data",
+                    systemImage: "creditcard",
+                    description: Text("No payment activity recorded for this asset")
+                )
+                .frame(height: 250)
+            }
+        }
+        .padding()
+        .background(.regularMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+    
     private func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -872,6 +787,8 @@ struct AssetDetailView: View {
         formatter.maximumFractionDigits = decimals
         return formatter.string(from: NSNumber(value: number)) ?? String(format: "%.*f", decimals, number)
     }
+
+    // Removed Financial Metrics Section grid; metrics are now shown as simple rows in the respective detail cards
 }
 
 struct DetailRow: View {

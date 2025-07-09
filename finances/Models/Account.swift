@@ -2,6 +2,12 @@ import SwiftUI
 import Foundation
 import Combine
 
+struct BudgetCategory: Identifiable {
+    let id = UUID()
+    let name: String
+    let budget: Double
+}
+
 protocol Account: ObservableObject {
     var transactions: [Transaction] { get set }
     var budget: [BudgetCategory] { get set }
