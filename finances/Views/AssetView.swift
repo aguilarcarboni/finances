@@ -48,6 +48,7 @@ struct AssetDetailView: View {
     
     @State private var forecastMonths: Double = 12
     @State private var selectedChartFilter: ChartTimeFilter = .oneMonth
+    @State private var showDownPaymentDetail: Bool = false
     
     var body: some View {
         ScrollView {
@@ -183,7 +184,19 @@ struct AssetDetailView: View {
                 .fontWeight(.semibold)
 
             VStack(spacing: 12) {
-                DetailRow(title: "Down Payment", value: "₡\(formattedNumber(asset.downPayment))")
+                if let downPaymentTx = asset.loan?.downPaymentTransaction {
+                    Button(action: { showDownPaymentDetail = true }) {
+                        DetailRow(title: "Down Payment", value: "₡\(formattedNumber(asset.downPayment))")
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .accessibilityLabel("View Down Payment Transaction Details")
+                } else {
+                    DetailRow(title: "Down Payment", value: "₡\(formattedNumber(asset.downPayment))")
+                }
+                if let downPaymentDate = asset.loan?.downPaymentTransaction?.date {
+                    DetailRow(title: "Down Payment Date", value: formattedDate(downPaymentDate))
+                }
                 DetailRow(title: "Interest Rate", value: "\(formattedNumber(asset.interestRate, decimals: 1))%")
                 DetailRow(title: "Loan Term", value: "\(asset.loanTermYears) years")
 
@@ -209,6 +222,13 @@ struct AssetDetailView: View {
         .padding()
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .sheet(isPresented: $showDownPaymentDetail) {
+            if let tx = asset.loan?.downPaymentTransaction {
+                NavigationStack {
+                    TransactionDetailView(transaction: tx)
+                }
+            }
+        }
     }
     
     private var performanceSummaryCard: some View {

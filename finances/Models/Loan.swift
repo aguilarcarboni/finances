@@ -18,7 +18,9 @@ struct Loan: Identifiable, Hashable {
     var interestRate: Double      // Annual nominal rate expressed in percent (e.g. 7.5)
     var termYears: Int           // Total length of the loan in years
     var startDate: Date          // When the loan started – usually the asset acquisition date
-    var downPayment: Double      // Initial down-payment made when the loan was taken
+    var downPaymentTransaction: Transaction? // Down-payment represented as a Transaction
+    /// Convenience accessor returning the monetary value of the down-payment.
+    var downPayment: Double { downPaymentTransaction?.amount ?? 0 }
     private(set) var status: LoanStatus
     private(set) var paidOffDate: Date?
 
@@ -28,7 +30,7 @@ struct Loan: Identifiable, Hashable {
                 interestRate: Double,
                 termYears: Int,
                 startDate: Date,
-                downPayment: Double = 0,
+                downPaymentTransaction: Transaction? = nil,
                 status: LoanStatus = .activeLoan,
                 paidOffDate: Date? = nil) {
         self.id = id
@@ -36,7 +38,7 @@ struct Loan: Identifiable, Hashable {
         self.interestRate = interestRate
         self.termYears = termYears
         self.startDate = startDate
-        self.downPayment = downPayment
+        self.downPaymentTransaction = downPaymentTransaction
         self.status = status
         self.paidOffDate = paidOffDate
     }

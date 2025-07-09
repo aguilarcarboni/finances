@@ -25,12 +25,21 @@ class AssetsManager: ObservableObject {
         
         // Add the Nissan Magnite car (current loan)
         let carAcquisitionDate = Calendar.current.date(byAdding: .month, value: -2, to: Date()) ?? Date()
+        // Represent the car's down-payment as a proper transaction
+        let carDownPayment = Transaction(
+            name: "Nissan Magnite Down Payment",
+            category: "Loan Down Payment",
+            amount: 3_090_000,
+            type: .debit,
+            date: carAcquisitionDate
+        )
+
         let carLoan = Loan(
             originalAmount: 9_733_500,
             interestRate: 7.5,
             termYears: 8,
             startDate: carAcquisitionDate,
-            downPayment: 3_090_000
+            downPaymentTransaction: carDownPayment
         )
 
         let car = Asset(

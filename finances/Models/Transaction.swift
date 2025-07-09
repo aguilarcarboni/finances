@@ -5,7 +5,7 @@ enum TransactionType: String, CaseIterable {
     case credit = "Credit"
 }
 
-struct Transaction: Identifiable {
+struct Transaction: Identifiable, Hashable {
     let id = UUID()
     let name: String
     let category: String
