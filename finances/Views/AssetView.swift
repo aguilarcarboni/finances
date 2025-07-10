@@ -42,6 +42,13 @@ struct PaymentComparisonDataPoint: Identifiable {
     let type: String
 }
 
+struct ExtraPaymentScenario {
+    let amount: Double
+    let monthsSaved: Int
+    let interestSaved: Double
+    let newPayoffDate: String
+}
+
 struct AssetDetailView: View {
     let asset: Asset
     @ObservedObject private var expensesAccount = ExpensesAccount.shared
@@ -60,6 +67,12 @@ struct AssetDetailView: View {
                 if asset.hasLoan {
                     loanDetailsCard
                 }
+                
+                // Show loan payoff projection for active loans
+                if asset.hasActiveLoan {
+                    loanPayoffProjectionCard
+                }
+                
                 performanceSummaryCard
                 valueOverTimeChartCard
                 // Payment comparison for loan assets
@@ -230,6 +243,114 @@ struct AssetDetailView: View {
                 }
             }
         }
+    }
+    
+    // MARK: - Loan Payoff Projection Card
+    
+    private var loanPayoffProjectionCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Loan Payoff Projection")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                    
+                    Text("Timeline and savings with extra payments")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "calendar.badge.clock")
+                    .font(.title2)
+                    .foregroundStyle(.blue)
+            }
+            
+            // Current payoff timeline
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Current Schedule")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+                
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Payoff Date")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(currentPayoffDate)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("Time Remaining")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(remainingLoanTimeText)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                    }
+                }
+                .padding()
+                .background(.blue.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+            
+            // Extra payment scenarios
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Extra Payment Scenarios")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+                
+                ForEach(extraPaymentScenarios, id: \.amount) { scenario in
+                    extraPaymentScenarioRow(scenario: scenario)
+                }
+            }
+        }
+        .padding()
+        .background(.regularMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+    
+    private func extraPaymentScenarioRow(scenario: ExtraPaymentScenario) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("With ₡\(formattedNumber(scenario.amount))/month extra")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                
+                Spacer()
+                
+                Text("Save ₡\(formattedNumber(scenario.interestSaved))")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.green)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(.green.opacity(0.1))
+                    .clipShape(Capsule())
+            }
+            
+            HStack {
+                Text("Finishes in \(scenario.newPayoffDate)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Spacer()
+                
+                Text("\(scenario.monthsSaved) months earlier")
+                    .font(.caption)
+                    .foregroundStyle(.blue)
+            }
+        }
+        .padding()
+        .background(.gray.opacity(0.05))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
     
     private var performanceSummaryCard: some View {
@@ -613,6 +734,47 @@ struct AssetDetailView: View {
             result.append(PaymentComparisonDataPoint(periodName: monthString, amount: actual, type: "Actual"))
         }
         return result
+    }
+    
+    // MARK: - Loan Payoff Projection Helpers
+    
+    private var currentPayoffDate: String {
+        guard asset.hasActiveLoan else { return "N/A" }
+        
+        let totalMonths = asset.loanTermYears * 12
+        let remainingMonths = max(0, totalMonths - asset.monthsOwned)
+        
+        let payoffDate = Calendar.current.date(byAdding: .month, value: remainingMonths, to: Date()) ?? Date()
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM yyyy"
+        return formatter.string(from: payoffDate)
+    }
+    
+    private var extraPaymentScenarios: [ExtraPaymentScenario] {
+        guard asset.hasActiveLoan else { return [] }
+        
+        let extraPaymentAmounts: [Double] = [50000, 100000, 200000] // ₡50K, ₡100K, ₡200K
+        
+        return extraPaymentAmounts.compactMap { extraAmount in
+            let analysis = asset.payoffAnalysis(extraPayment: extraAmount)
+            
+            // Calculate new payoff date
+            let totalMonths = asset.loanTermYears * 12
+            let originalRemainingMonths = max(0, totalMonths - asset.monthsOwned)
+            let newRemainingMonths = max(1, originalRemainingMonths - analysis.monthsSaved)
+            
+            let newPayoffDate = Calendar.current.date(byAdding: .month, value: newRemainingMonths, to: Date()) ?? Date()
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM yyyy"
+            
+            return ExtraPaymentScenario(
+                amount: extraAmount,
+                monthsSaved: analysis.monthsSaved,
+                interestSaved: analysis.interestSaved,
+                newPayoffDate: formatter.string(from: newPayoffDate)
+            )
+        }.filter { $0.monthsSaved > 0 } // Only show scenarios that actually save time
     }
 
         private var valueOverTimeChartCard: some View {

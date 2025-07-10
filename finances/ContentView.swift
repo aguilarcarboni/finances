@@ -12,11 +12,7 @@ struct ContentView: View {
     
     var body: some View {
         TabView {
-            DashboardView()
-                .tabItem {
-                    Label("Dashboard", systemImage: "chart.bar.fill")
-                }
-            
+
             ExpensesAccountView()
                 .tabItem {
                     Label("Expenses", systemImage: "dollarsign")
@@ -27,14 +23,24 @@ struct ContentView: View {
                     Label("Savings", systemImage: "dollarsign.bank.building")
                 }
 
+            AssetsView()
+                .tabItem {
+                    Label("Assets", systemImage: "house")
+                }
+            
             InvestmentsView()
                 .tabItem {
                     Label("Investments", systemImage: "chart.line.uptrend.xyaxis")
                 }
 
-            AssetsView()
+            DashboardView()
                 .tabItem {
-                    Label("Assets", systemImage: "house")
+                    Label("Dashboard", systemImage: "chart.bar.fill")
+                }
+
+            WealthMapView()
+                .tabItem {
+                    Label("Wealth Map", systemImage: "point.3.connected.trianglepath.dotted")
                 }
         }
     }

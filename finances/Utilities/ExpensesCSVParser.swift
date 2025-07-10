@@ -99,10 +99,8 @@ struct ExpensesCSVParser {
         // DEBIT (expense) heuristics – original logic retained
         if lower.contains("delta") || lower.contains("servicentro") {
             return "Transportation"
-        } else if lower.contains("openai") || lower.contains("cursor") || lower.contains("seguro beld") || lower.contains("compass") {
+        } else if lower.contains("openai") || lower.contains("cursor") || lower.contains("seguro beld") || lower.contains("admin compass") {
             return "Subscriptions"
-        } else if lower.contains("pago") {
-            return "Debt"
         } else if lower.contains("ahorro") {
             return "Savings"
         } else {
