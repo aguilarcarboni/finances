@@ -38,10 +38,7 @@ struct LoanPayoffPredictorView: View {
                 Spacer()
             }
             .padding()
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle("Loan Payoff Predictor")
-            .navigationBarTitleDisplayMode(.large)
-        }
+            .navigationTitle("Loan Payoff Predictor")        }
     }
     
     private var assetsWithLoans: [Asset] {
@@ -172,11 +169,11 @@ struct AssetLoanCard: View {
         }
         .padding()
         .frame(width: 180)
-        .background(isSelected ? Color.blue.opacity(0.1) : Color(.systemBackground))
+        .background(isSelected ? Color.blue.opacity(0.1) : Color(.white))
         .cornerRadius(10)
         .overlay(
             RoundedRectangle(cornerRadius: 10)
-                .stroke(isSelected ? Color.blue : Color(.systemGray4), lineWidth: isSelected ? 2 : 1)
+                .stroke(isSelected ? Color.blue : Color(.white), lineWidth: isSelected ? 2 : 1)
         )
     }
 }
@@ -197,7 +194,6 @@ struct ExtraPaymentInputSection: View {
                     .foregroundColor(.secondary)
                 
                 TextField("0", value: $extraMonthlyPayment, format: .number)
-                    .keyboardType(.decimalPad)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .onChange(of: extraMonthlyPayment) { _ in
                         showingCalculations = extraMonthlyPayment > 0
@@ -223,7 +219,6 @@ struct ExtraPaymentInputSection: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
         .cornerRadius(12)
     }
 }
@@ -265,7 +260,6 @@ struct LoanPayoffResultsView: View {
             )
         }
         .padding()
-        .background(Color(.systemBackground))
         .cornerRadius(12)
     }
     
@@ -382,7 +376,6 @@ struct ComparisonTableView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
         .cornerRadius(8)
     }
 }

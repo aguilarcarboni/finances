@@ -357,6 +357,48 @@ class ExpensesAccount: ObservableObject, Account {
         return result.reversed()
     }
     
+    // MARK: - Transfer Validation
+    /// Validates that transfers moving FROM the Savings account INTO the Expenses account match.
+    /// - Parameter savingsAccount: The `SavingsAccount` instance that should mirror outgoing transfers.
+    /// - Returns: A tuple indicating whether the totals match and a user-friendly message.
+    func validateTransfersFromSavings(_ savingsAccount: SavingsAccount) -> (isValid: Bool, message: String) {
+        // Money leaving the Savings account (debit) and arriving in the Expenses account (credit)
+        // should have the same total amount under the generic "Savings" category.
+        let expensesIncomingTransfers = creditsForCategory("Savings")
+        let savingsOutgoingTransfers = savingsAccount.debitsForCategory("Savings")
+        
+        let difference = abs(expensesIncomingTransfers - savingsOutgoingTransfers)
+        let isValid = difference < 1.0 // Allow small rounding differences
+        let message = isValid
+            ? "✅ Savings → Expenses transfers match perfectly"
+            : "⚠️ Transfer mismatch: ₡\(Int(difference).formatted()) difference"
+        
+        return (isValid, message)
+    }
+    
+    // MARK: - Cash-Flow Validation from Assets
+    /// Validates that every revenue-generating asset has at least one matching credit entry in this account.
+    /// - Parameter assets: Collection of assets to check.
+    /// - Returns: Tuple indicating validity and a message.
+    func validateCashFlowFromAssets(_ assets: [Asset]) -> (isValid: Bool, message: String) {
+        var missingAssets: [String] = []
+        for asset in assets where asset.isRevenueGenerating {
+            let assetCredits = credits.filter { $0.category == "Asset Income" && $0.name.contains(asset.name) }
+            if assetCredits.isEmpty {
+                missingAssets.append(asset.name)
+            }
+        }
+        let isValid = missingAssets.isEmpty
+        let message: String
+        if isValid {
+            message = "✅ Cash flow validated"
+        } else {
+            let list = missingAssets.joined(separator: ", ")
+            message = "⚠️ Missing cash flow for: \(list)"
+        }
+        return (isValid, message)
+    }
+    
     private init() {
         // Data is loaded via CSV import (ExpensesCSVImportManager)
     }

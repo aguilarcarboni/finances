@@ -56,6 +56,11 @@ struct AssetDetailView: View {
     @State private var forecastMonths: Double = 12
     @State private var selectedChartFilter: ChartTimeFilter = .oneMonth
     @State private var showDownPaymentDetail: Bool = false
+
+    // Validation: Expenses → Asset payments
+    private var paymentValidation: (isValid: Bool, message: String) {
+        asset.validatePaymentsWithExpenses(expensesAccount)
+    }
     
     var body: some View {
         ScrollView {
@@ -83,7 +88,6 @@ struct AssetDetailView: View {
             .padding()
         }
         .navigationTitle("Asset Details")
-        .navigationBarTitleDisplayMode(.inline)
     }
     
     // MARK: - Base Cards
@@ -129,6 +133,15 @@ struct AssetDetailView: View {
                                     .clipShape(Capsule())
                             }
                         }
+                    }
+                    // Payment validation indicator
+                    HStack(spacing: 4) {
+                        Image(systemName: paymentValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                            .foregroundColor(paymentValidation.isValid ? .green : .orange)
+                            .font(.caption)
+                        Text(paymentValidation.isValid ? "Payments Validated" : "Check Payments")
+                            .font(.caption)
+                            .foregroundColor(paymentValidation.isValid ? .green : .orange)
                     }
                 }
                 

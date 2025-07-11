@@ -19,9 +19,7 @@ struct DashboardView: View {
 
                 }
             }
-            .background(Color(.systemGroupedBackground))
             .navigationTitle("Finances")
-            .navigationBarTitleDisplayMode(.large)
         }
     }
 }
@@ -141,7 +139,6 @@ struct CapitalAllocationCardView: View {
             } else {
                 // Show a placeholder chart when no data
                 Circle()
-                    .fill(Color(.systemGray5))
                     .frame(height: 150)
                     .overlay(
                         Text("No assets yet")

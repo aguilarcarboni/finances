@@ -39,7 +39,6 @@ struct InvestmentsView: View {
                         }
                         .padding(.horizontal)
                     }
-                    .background(Color(.systemGroupedBackground))
                 } else {
                     // Show connection prompt when offline
                     ContentUnavailableView {
@@ -62,9 +61,8 @@ struct InvestmentsView: View {
                 }
             }
             .navigationTitle("Investments")
-            .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                ToolbarItemGroup() {
                     if apiManager.isConnected {
                         Button(action: {
                             apiManager.disconnect()
@@ -158,7 +156,6 @@ struct InvestmentsView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
@@ -229,7 +226,6 @@ struct InvestmentsView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
@@ -319,7 +315,6 @@ struct InvestmentsView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
@@ -366,7 +361,6 @@ struct InvestmentsView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
@@ -413,7 +407,6 @@ struct InvestmentsView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
@@ -471,7 +464,6 @@ struct InvestmentsView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
@@ -518,7 +510,6 @@ struct AccountMetricCard: View {
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color(.secondarySystemBackground))
         .cornerRadius(8)
     }
     
@@ -560,7 +551,6 @@ struct PnLCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(Color(.secondarySystemBackground))
         .cornerRadius(8)
     }
     
@@ -659,7 +649,6 @@ struct OrderRow: View {
             }
         }
         .padding()
-        .background(Color(.tertiarySystemBackground))
         .cornerRadius(8)
     }
     
@@ -707,7 +696,6 @@ struct TradeRow: View {
             }
         }
         .padding()
-        .background(Color(.tertiarySystemBackground))
         .cornerRadius(8)
     }
     
@@ -725,7 +713,7 @@ struct WatchlistItemCard: View {
     
     var body: some View {
         Button(action: {
-            openStocksApp(for: item.symbol)
+            print("Checking stocks...")
         }) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
@@ -764,27 +752,10 @@ struct WatchlistItemCard: View {
                 }
             }
             .padding()
-            .background(Color(.secondarySystemBackground))
+
             .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
-    }
-    
-    private func openStocksApp(for symbol: String) {
-        if let stocksURL = URL(string: "stocks://?symbol=\(symbol)"),
-           UIApplication.shared.canOpenURL(stocksURL) {
-            UIApplication.shared.open(stocksURL)
-        } else {
-            // Fallback Normal Stocks App
-            if let fallbackURL = URL(string: "stocks://") {
-                UIApplication.shared.open(fallbackURL)
-            } else {
-                // Open App Store to download Stocks App
-                if let appStoreURL = URL(string: "https://apps.apple.com/us/app/stocks-by-apple/id1294833514") {
-                    UIApplication.shared.open(appStoreURL)
-                }
-            }
-        }
     }
     
     private func formatCurrency(_ value: Double) -> String {

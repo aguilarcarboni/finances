@@ -128,7 +128,7 @@ private extension SavingsView {
                     Image(systemName: transferValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                         .foregroundColor(transferValidation.isValid ? .green : .orange)
                         .font(.caption)
-                    Text(transferValidation.isValid ? "Validated" : "Check Transfers")
+                    Text(transferValidation.isValid ? "Savings Validated" : "Check Transfers")
                         .font(.caption)
                         .foregroundColor(transferValidation.isValid ? .green : .orange)
                 }

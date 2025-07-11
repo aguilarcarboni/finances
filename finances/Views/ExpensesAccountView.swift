@@ -3,7 +3,19 @@ import Charts
 
 struct ExpensesAccountView: View {
     @ObservedObject private var account = ExpensesAccount.shared
+    @ObservedObject private var savingsAccount = SavingsAccount.shared
+    @ObservedObject private var assetsManager = AssetsManager.shared
     @State private var selectedChartFilter: ChartTimeFilter = .oneMonth
+
+    // Savings → Expenses transfer validation helper
+    private var savingsTransferValidation: (isValid: Bool, message: String) {
+        account.validateTransfersFromSavings(savingsAccount)
+    }
+
+    // NEW: Helper for income budget section
+    private var assetCashFlowValidation: (isValid: Bool, message: String) {
+        account.validateCashFlowFromAssets(assetsManager.assets)
+    }
 
     // MARK: - Filtered Transaction Data (based on selected time filter)
     private var currentMonthTransactions: [Transaction] {
@@ -53,6 +65,26 @@ struct ExpensesAccountView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
+                            VStack(alignment: .trailing, spacing: 4) {
+                                // Savings → Expenses validation
+                                HStack(spacing: 4) {
+                                    Image(systemName: savingsTransferValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                        .foregroundColor(savingsTransferValidation.isValid ? .green : .orange)
+                                        .font(.caption)
+                                    Text(savingsTransferValidation.isValid ? "Savings Validated" : "Check Savings Transfers")
+                                        .font(.caption)
+                                        .foregroundColor(savingsTransferValidation.isValid ? .green : .orange)
+                                }
+                                // Asset cash-flow validation
+                                HStack(spacing: 4) {
+                                    Image(systemName: assetCashFlowValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                        .foregroundColor(assetCashFlowValidation.isValid ? .green : .orange)
+                                        .font(.caption)
+                                    Text(assetCashFlowValidation.isValid ? "Asset Cash-flow Validated" : "Check Asset Cash-flow")
+                                        .font(.caption)
+                                        .foregroundColor(assetCashFlowValidation.isValid ? .green : .orange)
+                                }
+                            }
                         }
                         
                         // Account Balance Summary

@@ -10,9 +10,6 @@ struct WealthMapView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background
-                Color(.systemGroupedBackground)
-                    .ignoresSafeArea()
                 
                 // Wealth Map Content
                 ScrollView([.horizontal, .vertical], showsIndicators: false) {
@@ -95,9 +92,8 @@ struct WealthMapView: View {
                 }
             }
             .navigationTitle("Wealth Map")
-            .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem() {
                     Button("Refresh") {
                         wealthMapManager.refreshWealthMap()
                     }
@@ -232,7 +228,6 @@ struct NodeView: View {
         .frame(width: WealthMapLayoutConstants.nodeWidth, height: WealthMapLayoutConstants.nodeHeight)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
                 .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
         )
         .overlay(
@@ -386,7 +381,6 @@ struct ConnectionLabel: View {
             .padding(.vertical, 4)
             .background(
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(Color(.systemBackground))
                     .shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 1)
             )
             .position(midpoint)
@@ -455,7 +449,6 @@ struct WealthMapSummaryCard: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
                 .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
         )
     }
@@ -517,7 +510,6 @@ struct NodeDetailView: View {
                     .padding()
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(.systemBackground))
                             .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
                     )
                     
@@ -546,7 +538,6 @@ struct NodeDetailView: View {
                     .padding()
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(.systemBackground))
                             .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
                     )
                     
@@ -555,9 +546,8 @@ struct NodeDetailView: View {
                 .padding()
             }
             .navigationTitle("Node Details")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem() {
                     Button("Done") {
                         // Dismiss handled by sheet
                     }
@@ -605,7 +595,6 @@ struct CircularButtonStyle: ButtonStyle {
             .frame(width: 44, height: 44)
             .background(
                 Circle()
-                    .fill(Color(.systemBackground))
                     .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
             )
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)

@@ -446,4 +446,26 @@ struct Asset: Identifiable {
             return category == .tangible ? -0.05 : 0.0 // Default: tangible depreciates, intangible neutral
         }
     }
+    
+    // MARK: - Validation Helpers
+    /// Validates that the down-payment plus all periodic payments recorded in **ExpensesAccount** match what this asset expects.
+    /// - Parameter expensesAccount: The shared `ExpensesAccount` instance to compare against.
+    /// - Returns: A tuple containing a boolean indicating success and a human-readable summary message.
+    func validatePaymentsWithExpenses(_ expensesAccount: ExpensesAccount) -> (isValid: Bool, message: String) {
+        // Sum all debits in the specified expense category that occurred after the acquisition date.
+        let actualPaid = expensesAccount.transactions
+            .filter { $0.type == .debit && $0.category == expenseCategory && $0.date >= acquisitionDate }
+            .reduce(0) { $0 + $1.amount }
+        
+        // Expected amount paid so far (down-payment + monthly payments completed to date).
+        let expectedPaid = totalPaidToday
+        
+        let difference = abs(expectedPaid - actualPaid)
+        let isValid = difference < 1.0 // Small rounding allowance.
+        let message = isValid
+            ? "✅ Payments match"
+            : "⚠️ Payment mismatch: ₡\(Int(difference).formatted()) difference"
+        
+        return (isValid, message)
+    }
 }
