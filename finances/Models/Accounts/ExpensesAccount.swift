@@ -375,6 +375,43 @@ class ExpensesAccount: ObservableObject, Account {
         
         return (isValid, message)
     }
+
+    /// Validates that transfers moving FROM the Expenses account INTO the Wise account match.
+    /// The category used for these transfers should be "Wise".
+    /// - Parameter wiseAccount: The `WiseAccount` instance that should mirror incoming transfers.
+    /// - Returns: A tuple indicating whether the totals match and a user-friendly message.
+    func validateTransfersToWise(_ wiseAccount: WiseAccount) -> (isValid: Bool, message: String) {
+        // Money leaving the Expenses account (debit) and arriving in the Wise account (credit)
+        // should have the same total amount under the "Wise" category.
+        let expensesOutgoing = debitsForCategory("Wise")
+        let wiseIncoming = wiseAccount.creditsForCategory("Wise")
+
+        let difference = abs(expensesOutgoing - wiseIncoming)
+        let isValid = difference < 1.0
+        let message = isValid
+            ? "✅ Expenses → Wise transfers match perfectly"
+            : "⚠️ Expenses → Wise mismatch: ₡\(Int(difference).formatted()) difference"
+
+        return (isValid, message)
+    }
+
+    /// Validates that transfers moving FROM the Wise account INTO the Expenses account match.
+    /// The category used for these transfers should be "Wise".
+    /// - Parameter wiseAccount: The `WiseAccount` instance providing outgoing transfers.
+    /// - Returns: A tuple indicating whether the totals match and a user-friendly message.
+    func validateTransfersFromWise(_ wiseAccount: WiseAccount) -> (isValid: Bool, message: String) {
+        // Money leaving the Wise account (debit) and arriving in the Expenses account (credit)
+        let expensesIncoming = creditsForCategory("Wise")
+        let wiseOutgoing = wiseAccount.debitsForCategory("Wise")
+
+        let difference = abs(expensesIncoming - wiseOutgoing)
+        let isValid = difference < 1.0
+        let message = isValid
+            ? "✅ Wise → Expenses transfers match perfectly"
+            : "⚠️ Wise → Expenses mismatch: ₡\(Int(difference).formatted()) difference"
+
+        return (isValid, message)
+    }
     
     // MARK: - Cash-Flow Validation from Assets
     /// Validates that every revenue-generating asset has at least one matching credit entry in this account.

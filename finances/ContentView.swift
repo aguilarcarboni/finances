@@ -13,34 +13,19 @@ struct ContentView: View {
     var body: some View {
         TabView {
 
-            ExpensesAccountView()
+            AccountsView()
                 .tabItem {
-                    Label("Expenses", systemImage: "dollarsign")
+                    Label("Accounts", systemImage: "person.3.sequence")
                 }
             
-            SavingsView()
-                .tabItem {
-                    Label("Savings", systemImage: "dollarsign.bank.building")
-                }
-
             AssetsView()
                 .tabItem {
                     Label("Assets", systemImage: "house")
                 }
             
-            InvestmentsView()
-                .tabItem {
-                    Label("Investments", systemImage: "chart.line.uptrend.xyaxis")
-                }
-
             DashboardView()
                 .tabItem {
                     Label("Dashboard", systemImage: "chart.bar.fill")
-                }
-
-            WealthMapView()
-                .tabItem {
-                    Label("Wealth Map", systemImage: "point.3.connected.trianglepath.dotted")
                 }
         }
     }

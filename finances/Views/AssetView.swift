@@ -139,7 +139,7 @@ struct AssetDetailView: View {
                         Image(systemName: paymentValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                             .foregroundColor(paymentValidation.isValid ? .green : .orange)
                             .font(.caption)
-                        Text(paymentValidation.isValid ? "Payments Validated" : "Check Payments")
+                        Text(paymentValidation.isValid ? "Expenses Credits Validated" : "Check Expenses Credits")
                             .font(.caption)
                             .foregroundColor(paymentValidation.isValid ? .green : .orange)
                     }

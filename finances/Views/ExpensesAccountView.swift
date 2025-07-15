@@ -17,6 +17,11 @@ struct ExpensesAccountView: View {
         account.validateCashFlowFromAssets(assetsManager.assets)
     }
 
+    // NEW: Helper for Wise transfers validation
+    private var wiseIncomingValidation: (isValid: Bool, message: String) {
+        account.validateTransfersFromWise(WiseAccount.shared)
+    }
+
     // MARK: - Filtered Transaction Data (based on selected time filter)
     private var currentMonthTransactions: [Transaction] {
         let range = selectedChartFilter.dateRange
@@ -71,7 +76,7 @@ struct ExpensesAccountView: View {
                                     Image(systemName: savingsTransferValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                                         .foregroundColor(savingsTransferValidation.isValid ? .green : .orange)
                                         .font(.caption)
-                                    Text(savingsTransferValidation.isValid ? "Savings Validated" : "Check Savings Transfers")
+                                    Text(savingsTransferValidation.isValid ? "Savings Credits Validated" : "Check Savings Credits")
                                         .font(.caption)
                                         .foregroundColor(savingsTransferValidation.isValid ? .green : .orange)
                                 }
@@ -80,9 +85,18 @@ struct ExpensesAccountView: View {
                                     Image(systemName: assetCashFlowValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                                         .foregroundColor(assetCashFlowValidation.isValid ? .green : .orange)
                                         .font(.caption)
-                                    Text(assetCashFlowValidation.isValid ? "Asset Cash-flow Validated" : "Check Asset Cash-flow")
+                                    Text(assetCashFlowValidation.isValid ? "Asset Credits Validated" : "Check Asset Credits")
                                         .font(.caption)
                                         .foregroundColor(assetCashFlowValidation.isValid ? .green : .orange)
+                                }
+                                // Wise → Expenses validation
+                                HStack(spacing: 4) {
+                                    Image(systemName: wiseIncomingValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                        .foregroundColor(wiseIncomingValidation.isValid ? .green : .orange)
+                                        .font(.caption)
+                                    Text(wiseIncomingValidation.isValid ? "Wise Credits Validated" : "Check Wise Credits")
+                                        .font(.caption)
+                                        .foregroundColor(wiseIncomingValidation.isValid ? .green : .orange)
                                 }
                             }
                         }
