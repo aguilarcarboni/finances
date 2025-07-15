@@ -55,54 +55,10 @@ struct ExpensesAccountView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 30) {
-                    
-                    // Current Month Header
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Expenses Account")
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
-                                Text(getDateRangeDisplay())
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            VStack(alignment: .trailing, spacing: 4) {
-                                // Savings → Expenses validation
-                                HStack(spacing: 4) {
-                                    Image(systemName: savingsTransferValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                                        .foregroundColor(savingsTransferValidation.isValid ? .green : .orange)
-                                        .font(.caption)
-                                    Text(savingsTransferValidation.isValid ? "Savings Credits Validated" : "Check Savings Credits")
-                                        .font(.caption)
-                                        .foregroundColor(savingsTransferValidation.isValid ? .green : .orange)
-                                }
-                                // Asset cash-flow validation
-                                HStack(spacing: 4) {
-                                    Image(systemName: assetCashFlowValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                                        .foregroundColor(assetCashFlowValidation.isValid ? .green : .orange)
-                                        .font(.caption)
-                                    Text(assetCashFlowValidation.isValid ? "Asset Credits Validated" : "Check Asset Credits")
-                                        .font(.caption)
-                                        .foregroundColor(assetCashFlowValidation.isValid ? .green : .orange)
-                                }
-                                // Wise → Expenses validation
-                                HStack(spacing: 4) {
-                                    Image(systemName: wiseIncomingValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                                        .foregroundColor(wiseIncomingValidation.isValid ? .green : .orange)
-                                        .font(.caption)
-                                    Text(wiseIncomingValidation.isValid ? "Wise Credits Validated" : "Check Wise Credits")
-                                        .font(.caption)
-                                        .foregroundColor(wiseIncomingValidation.isValid ? .green : .orange)
-                                }
-                            }
-                        }
-                        
-                        // Account Balance Summary
-                        HStack {
+            List {
+                Section(header: Text(getDateRangeDisplay())) {
+                    HStack {                   
+                        VStack(alignment: .leading, spacing: 4) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Account Balance")
                                     .font(.caption)
@@ -113,17 +69,43 @@ struct ExpensesAccountView: View {
                                     .foregroundColor(account.netBalance >= 0 ? .green : .red)
                             }
                         }
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 4) {
+                            // Savings → Expenses validation
+                            HStack(spacing: 4) {
+                                Image(systemName: savingsTransferValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                    .foregroundColor(savingsTransferValidation.isValid ? .green : .orange)
+                                    .font(.caption)
+                                Text(savingsTransferValidation.isValid ? "Savings Credits Validated" : "Check Savings Credits")
+                                    .font(.caption)
+                                    .foregroundColor(savingsTransferValidation.isValid ? .green : .orange)
+                            }
+                            // Asset cash-flow validation
+                            HStack(spacing: 4) {
+                                Image(systemName: assetCashFlowValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                    .foregroundColor(assetCashFlowValidation.isValid ? .green : .orange)
+                                    .font(.caption)
+                                Text(assetCashFlowValidation.isValid ? "Asset Credits Validated" : "Check Asset Credits")
+                                    .font(.caption)
+                                    .foregroundColor(assetCashFlowValidation.isValid ? .green : .orange)
+                            }
+                            // Wise → Expenses validation
+                            HStack(spacing: 4) {
+                                Image(systemName: wiseIncomingValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                    .foregroundColor(wiseIncomingValidation.isValid ? .green : .orange)
+                                    .font(.caption)
+                                Text(wiseIncomingValidation.isValid ? "Wise Credits Validated" : "Check Wise Credits")
+                                    .font(.caption)
+                                    .foregroundColor(wiseIncomingValidation.isValid ? .green : .orange)
+                            }
+                        }
                     }
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(12)
-                    .padding(.horizontal)
-
+                }
+                Section(header: Text("Balance Over Time")) {
                     self.balanceChartSection
-
-                    // Budget vs Actual Section
+                }
+                Section(header: Text("Budget vs Actual")) {
                     VStack(alignment: .leading, spacing: 20) {
-                        
                         ForEach(account.budget) { category in
                             let actualSpent = currentMonthDebitsForCategory(category.name)
                             BudgetRow(
@@ -167,12 +149,8 @@ struct ExpensesAccountView: View {
                             }
                         }
                     }
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(20)
-                    .padding(.horizontal)
-
-                    // NEW: Income vs Expected Section
+                }
+                Section(header: Text("Income vs Expected")) {
                     VStack(alignment: .leading, spacing: 20) {
                         ForEach(account.incomeBudget) { category in
                             let actualIncome = currentMonthCreditsForCategory(category.name)
@@ -217,16 +195,9 @@ struct ExpensesAccountView: View {
                             }
                         }
                     }
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(20)
-                    .padding(.horizontal)
-
-                    // All Debits (Expenses) Section
+                }
+                Section(header: Text("Expenses")) {
                     VStack(alignment: .leading, spacing: 15) {
-                        Text("Expenses")
-                            .font(.title2.bold())
-                        
                         if currentMonthDebits.isEmpty {
                             HStack {
                                 Spacer()
@@ -263,16 +234,9 @@ struct ExpensesAccountView: View {
                                 .foregroundColor(.red)
                         }
                     }
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(20)
-                    .padding(.horizontal)
-
-                    // All Credits (Income) Section
+                }
+                Section(header: Text("Income")) {
                     VStack(alignment: .leading, spacing: 15) {
-                        Text("Income")
-                            .font(.title2.bold())
-                        
                         if currentMonthCredits.isEmpty {
                             HStack {
                                 Spacer()
@@ -309,10 +273,6 @@ struct ExpensesAccountView: View {
                                 .foregroundColor(.green)
                         }
                     }
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(20)
-                    .padding(.horizontal)
                 }
             }
             .navigationTitle("Expenses")
@@ -335,8 +295,6 @@ struct ExpensesAccountView: View {
     
     var balanceChartSection: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Account Balance Over Time")
-                .font(.title2.bold())
             
             let chartData = getFilteredChartData()
             
@@ -412,22 +370,12 @@ struct ExpensesAccountView: View {
                             Text(filter.rawValue)
                                 .font(.caption.bold())
                                 .foregroundColor(selectedChartFilter == filter ? .white : .gray)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(selectedChartFilter == filter ? .gray : .gray.opacity(0.2))
-                                )
                         }
                     }
                 }
                 Spacer()
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(20)
-        .padding(.horizontal)
     }
     
     func getFilteredChartData() -> [(month: String, balance: Double)] {

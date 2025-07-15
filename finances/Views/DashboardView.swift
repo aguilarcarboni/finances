@@ -6,17 +6,15 @@ struct DashboardView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVStack(spacing: 20) {
-                    // Net Worth Section
+            List {
+                Section(header: Text("Net Worth")) {
                     NetWorthCardView(
                         netWorth: wealthEngine.netWorth,
                         history: wealthEngine.netWorthHistory
                     )
-                    
-                    // Capital Allocation Section
+                }
+                Section(header: Text("Capital Allocation")) {
                     CapitalAllocationCardView(allocation: wealthEngine.capitalAllocation)
-
                 }
             }
             .navigationTitle("Finances")
@@ -32,27 +30,11 @@ struct NetWorthCardView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Net Worth")
-                    .font(.headline)
-                
-                Spacer()
-                
-                Image(systemName: "dollarsign.circle")
-                    .font(.title2)
-                    .foregroundColor(.green)
-            }
-            
             Text(netWorth.formatted(.currency(code: "CRC")))
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .foregroundColor(netWorth >= 0 ? .green : .red)
         }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(12)
-        .padding(.horizontal)
     }
 }
 
@@ -64,33 +46,7 @@ struct CapitalAllocationCardView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Capital Allocation")
-                    .font(.headline)
-                
-                Spacer()
-                
-                Image(systemName: "chart.pie")
-                    .font(.title2)
-                    .foregroundColor(.orange)
-            }
-            
-            // Investment Status Warning
-            if investmentsAccount.hasOfflineData {
-                HStack(spacing: 8) {
-                    Image(systemName: "wifi.slash")
-                        .foregroundColor(.orange)
-                        .font(.caption)
-                    
-                    Text("Investments offline - not included in calculations")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.orange.opacity(0.1))
-                .cornerRadius(8)
-            }
+
 
                         // Pie Chart
             if allocation.totalCapital > 0 {
@@ -167,11 +123,6 @@ struct CapitalAllocationCardView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(12)
-        .padding(.horizontal)
     }
 }
 

@@ -10,11 +10,11 @@ struct AccountsView: View {
                 NavigationLink(destination: SavingsView()) {
                     Label("Savings Account", systemImage: "dollarsign.bank.building")
                 }
-                NavigationLink(destination: InvestmentsView()) {
-                    Label("IBKR Account", systemImage: "chart.line.uptrend.xyaxis")
-                }
                 NavigationLink(destination: WiseAccountView()) {
                     Label("Wise Account", systemImage: "arrow.2.circlepath")
+                }
+                NavigationLink(destination: InvestmentsView()) {
+                    Label("Investments Account", systemImage: "chart.line.uptrend.xyaxis")
                 }
             }
             .navigationTitle("Accounts")

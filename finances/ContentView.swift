@@ -13,6 +13,11 @@ struct ContentView: View {
     var body: some View {
         TabView {
 
+            DashboardView()
+                .tabItem {
+                    Label("Dashboard", systemImage: "chart.bar.fill")
+                }
+                
             AccountsView()
                 .tabItem {
                     Label("Accounts", systemImage: "person.3.sequence")
@@ -21,11 +26,6 @@ struct ContentView: View {
             AssetsView()
                 .tabItem {
                     Label("Assets", systemImage: "house")
-                }
-            
-            DashboardView()
-                .tabItem {
-                    Label("Dashboard", systemImage: "chart.bar.fill")
                 }
         }
     }

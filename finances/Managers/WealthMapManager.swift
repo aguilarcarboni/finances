@@ -85,17 +85,6 @@ class WealthMapManager: ObservableObject {
         )
         nodes.append(savingsNode)
         
-        // Investments Account - Far right
-        let investmentsNode = WealthMapNode(
-            title: "Investments",
-            subtitle: "Portfolio",
-            amount: investmentsAccount.portfolioValue,
-            type: .investment,
-            position: CGPoint(x: 1200, y: 400), // More spacing
-            category: "Investment"
-        )
-        nodes.append(investmentsNode)
-        
         return nodes
     }
     

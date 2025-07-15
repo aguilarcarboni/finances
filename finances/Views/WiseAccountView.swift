@@ -15,19 +15,27 @@ struct WiseAccountView: View {
         account.validateTransfersFromExpenses(ExpensesAccount.shared)
     }
 
+    private var dateRangeDisplay: String {
+        let startDate = account.transactions.first?.date ?? Date()
+        let endDate = account.transactions.last?.date ?? Date()
+        return "\(startDate.formatted(date: .abbreviated, time: .omitted)) - \(endDate.formatted(date: .abbreviated, time: .omitted))"
+    }
+
     var body: some View {
         NavigationStack {
             List {
-                // Account summary section
-                Section {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Wise Account Balance")
-                            .font(.headline)
-                        Text(currencyFormatter.string(from: NSNumber(value: account.netBalance)) ?? "-")
-                            .font(.title2.monospacedDigit())
-                            .fontWeight(.bold)
-                            .foregroundColor(account.netBalance >= 0 ? .green : .red)
-                        // Expenses transfer validation indicator
+                Section(header: Text(dateRangeDisplay)) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Account Balance")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(currencyFormatter.string(from: NSNumber(value: account.netBalance)) ?? "-")
+                                .font(.title2.monospacedDigit())
+                                .fontWeight(.bold)
+                                .foregroundColor(account.netBalance >= 0 ? .green : .red)
+                        }
+                        Spacer()
                         HStack(spacing: 4) {
                             Image(systemName: expensesTransferValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                                 .foregroundColor(expensesTransferValidation.isValid ? .green : .orange)
@@ -39,7 +47,6 @@ struct WiseAccountView: View {
                     }
                 }
 
-                // Transactions Section
                 Section(header: Text("Transactions")) {
                     if account.transactions.isEmpty {
                         VStack(alignment: .center, spacing: 8) {

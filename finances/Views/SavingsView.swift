@@ -80,29 +80,22 @@ struct SavingsView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 30) {
-                    
+            List {
+                Section(header: Text(dateRangeDisplay())) {
                     self.summaryHeader
-
-                    if !savingsAccount.transactions.isEmpty {
+                }
+                if !savingsAccount.transactions.isEmpty {
+                    Section(header: Text("Savings Growth")) {
                         self.growthChartSection
-                    } else {
-                        Text("No savings data available")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                            .padding()
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(12)
-                            .padding(.horizontal)
                     }
-                    
+                }
+                Section(header: Text("Emergency Fund Progress")) {
                     self.emergencyFundProgressSection
-                    
-                    if savingsAccount.isEmergencyFundComplete && !savingsAccount.savingsCategories.isEmpty {
+                }
+                if savingsAccount.isEmergencyFundComplete && !savingsAccount.savingsCategories.isEmpty {
+                    Section(header: Text("Savings Categories")) {
                         self.savingsCategoriesSection
                     }
-                    
                 }
             }
             .navigationTitle("Savings")
@@ -114,16 +107,16 @@ private extension SavingsView {
     var summaryHeader: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Savings Account")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    Text(dateRangeDisplay())
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Account Balance")
                         .font(.caption)
                         .foregroundColor(.secondary)
+                    Text("₡\(Int(savingsAccount.savingsBalance).formatted())")
+                        .font(.title2.monospacedDigit())
+                        .fontWeight(.bold)
+                        .foregroundColor(.green)
                 }
                 Spacer()
-                // Transfer Validation Status
                 HStack(spacing: 4) {
                     Image(systemName: transferValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                         .foregroundColor(transferValidation.isValid ? .green : .orange)
@@ -133,82 +126,53 @@ private extension SavingsView {
                         .foregroundColor(transferValidation.isValid ? .green : .orange)
                 }
             }
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Total Balance")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Text("₡\(Int(savingsAccount.savingsBalance).formatted())")
-                    .font(.title2.monospacedDigit())
-                    .fontWeight(.bold)
-                    .foregroundColor(.green)
-            }
         }
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(12)
-        .padding(.horizontal)
     }
     
     var emergencyFundProgressSection: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 12) {
+            // Progress Details
             HStack {
-                Text("Emergency Fund Progress")
-                    .font(.title2.bold())
-                Spacer()
-                Text("₡\(Int(savingsAccount.emergencyFundTarget).formatted())")
-                    .font(.title3.monospacedDigit())
-                    .fontWeight(.semibold)
-                    .foregroundColor(.green)
-            }
-            
-            VStack(alignment: .leading, spacing: 12) {
-                // Progress Bar
-                ProgressView(value: savingsAccount.emergencyFundProgress)
-                    .progressViewStyle(LinearProgressViewStyle(tint: .green))
-                    .scaleEffect(x: 1, y: 2.5, anchor: .center)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Current")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("₡\(Int(savingsAccount.savingsBalance).formatted())")
+                        .font(.subheadline.monospacedDigit())
+                        .fontWeight(.semibold)
+                }
                 
-                // Progress Details
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Current")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("₡\(Int(savingsAccount.savingsBalance).formatted())")
-                            .font(.subheadline.monospacedDigit())
-                            .fontWeight(.semibold)
-                    }
-                    
-                    Spacer()
-                    
-                    VStack(alignment: .center, spacing: 4) {
-                        Text("Progress")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("\(Int(savingsAccount.emergencyFundProgressPercentage))%")
-                            .font(.title3.monospacedDigit())
-                            .fontWeight(.bold)
-                            .foregroundColor(.green)
-                    }
-                    
-                    Spacer()
-                    
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text("Remaining")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("₡\(Int(savingsAccount.emergencyFundRemaining).formatted())")
-                            .font(.subheadline.monospacedDigit())
-                            .fontWeight(.semibold)
-                            .foregroundColor(.orange)
-                    }
+                Spacer()
+                
+                VStack(alignment: .center, spacing: 4) {
+                    Text("Progress")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("\(Int(savingsAccount.emergencyFundProgressPercentage))%")
+                        .font(.title3.monospacedDigit())
+                        .fontWeight(.bold)
+                        .foregroundColor(.green)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("Remaining")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("₡\(Int(savingsAccount.emergencyFundRemaining).formatted())")
+                        .font(.subheadline.monospacedDigit())
+                        .fontWeight(.semibold)
+                        .foregroundColor(.orange)
                 }
             }
+            // Progress Bar
+            ProgressView(value: savingsAccount.emergencyFundProgress)
+                .progressViewStyle(LinearProgressViewStyle(tint: .green))
+                .scaleEffect(x: 1, y: 2.5, anchor: .center)
+            
         }
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(20)
-        .padding(.horizontal)
+        .padding(.vertical, 16)
     }
     
     var savingsCategoriesSection: some View {
@@ -242,16 +206,9 @@ private extension SavingsView {
                             .fontWeight(.bold)
                             .foregroundColor(.primary)
                     }
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(12)
                 }
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(20)
-        .padding(.horizontal)
     }
     
     var growthChartSection: some View {
@@ -322,22 +279,12 @@ private extension SavingsView {
                             Text(filter.rawValue)
                                 .font(.caption.bold())
                                 .foregroundColor(selectedChartFilter == filter ? .white : .gray)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(selectedChartFilter == filter ? .gray : .gray.opacity(0.2))
-                                )
                         }
                     }
                 }
                 Spacer()
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(20)
-        .padding(.horizontal)
     }
     
     func getFilteredChartData() -> [(month: String, balance: Double)] {
