@@ -352,7 +352,7 @@ struct ExpensesAccountView: View {
                 }
                 .chartXAxis {
                     AxisMarks(values: .automatic(desiredCount: 6)) { value in
-                        AxisValueLabel()
+                        AxisGridLine()
                     }
                 }
                 .padding()
@@ -502,6 +502,7 @@ struct TransactionRow: View {
         case "Income": return .green
         case "Investment": return .purple
         case "Rewards": return .yellow
+        case "Car Loan": return .brown
         default: return .gray
         }
     }

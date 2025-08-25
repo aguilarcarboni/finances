@@ -17,7 +17,7 @@ struct DashboardView: View {
                     CapitalAllocationCardView(allocation: wealthEngine.capitalAllocation)
                 }
             }
-            .navigationTitle("Finances")
+            .navigationTitle("Dashboard")
         }
     }
 }
