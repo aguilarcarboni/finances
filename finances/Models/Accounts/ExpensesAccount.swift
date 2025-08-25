@@ -9,16 +9,16 @@ class ExpensesAccount: ObservableObject, Account {
 
     @Published var budget: [BudgetCategory] = [
         BudgetCategory(name: "Car Loan", budget: 180000),
-        BudgetCategory(name: "Subscriptions", budget: 100000),
-        BudgetCategory(name: "Transportation", budget: 80000),
-        BudgetCategory(name: "Savings", budget: 200000),
-        BudgetCategory(name: "Misc", budget: 130000),
+        BudgetCategory(name: "Subscriptions", budget: 30000),
+        BudgetCategory(name: "Transportation", budget: 65000),
+        BudgetCategory(name: "Savings", budget: 150000),
+        BudgetCategory(name: "Misc", budget: 275000),
     ]
     
     // NEW: Expected income ("income budget") per income category
     @Published var incomeBudget: [BudgetCategory] = [
         // Set an expected amount for your recurring income categories. Adjust as needed in the UI.
-        BudgetCategory(name: "Salary", budget: 680000),
+        BudgetCategory(name: "Salary", budget: 700000),
         BudgetCategory(name: "Other", budget: 0)
     ]
     

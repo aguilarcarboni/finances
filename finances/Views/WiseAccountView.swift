@@ -2,6 +2,7 @@ import SwiftUI
 
 struct WiseAccountView: View {
     @ObservedObject private var account = WiseAccount.shared
+    @State private var selectedDate: Date = Date()
 
     private var currencyFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -15,10 +16,20 @@ struct WiseAccountView: View {
         account.validateTransfersFromExpenses(ExpensesAccount.shared)
     }
 
+    private var dateRange: (start: Date, end: Date) {
+        let calendar = Calendar.current
+        let comps = calendar.dateComponents([.year, .month], from: selectedDate)
+        let monthStart = calendar.date(from: comps) ?? selectedDate
+        let dayEnd = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: selectedDate) ?? selectedDate
+        return (start: monthStart, end: dayEnd)
+    }
+
+    private var filteredTransactions: [Transaction] {
+        account.transactions.filter { $0.date >= dateRange.start && $0.date <= dateRange.end }
+    }
+
     private var dateRangeDisplay: String {
-        let startDate = account.transactions.first?.date ?? Date()
-        let endDate = account.transactions.last?.date ?? Date()
-        return "\(startDate.formatted(date: .abbreviated, time: .omitted)) - \(endDate.formatted(date: .abbreviated, time: .omitted))"
+        "\(dateRange.start.formatted(date: .abbreviated, time: .omitted)) - \(dateRange.end.formatted(date: .abbreviated, time: .omitted))"
     }
 
     var body: some View {
@@ -48,7 +59,7 @@ struct WiseAccountView: View {
                 }
 
                 Section(header: Text("Transactions")) {
-                    if account.transactions.isEmpty {
+                    if filteredTransactions.isEmpty {
                         VStack(alignment: .center, spacing: 8) {
                             Image(systemName: "tray")
                                 .font(.title2)
@@ -58,7 +69,7 @@ struct WiseAccountView: View {
                         }
                         .frame(maxWidth: .infinity)
                     } else {
-                        ForEach(account.transactions.sorted { $0.date > $1.date }) { transaction in
+                        ForEach(filteredTransactions.sorted { $0.date > $1.date }) { transaction in
                             NavigationLink(destination: TransactionDetailView(transaction: transaction)) {
                                 TransactionRow(transaction: transaction, isDebit: transaction.type == .debit)
                             }
@@ -67,6 +78,13 @@ struct WiseAccountView: View {
                 }
             }
             .navigationTitle("Wise Account")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    DatePicker("Select Date", selection: $selectedDate, displayedComponents: [.date])
+                        .datePickerStyle(.compact)
+                        .labelsHidden()
+                }
+            }
         }
     }
 }

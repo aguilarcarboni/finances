@@ -5,7 +5,20 @@ struct ExpensesAccountView: View {
     @ObservedObject private var account = ExpensesAccount.shared
     @ObservedObject private var savingsAccount = SavingsAccount.shared
     @ObservedObject private var assetsManager = AssetsManager.shared
-    @State private var selectedChartFilter: ChartTimeFilter = .oneMonth
+    @State private var selectedMonth: Date = Date()
+
+    private var dateRange: (start: Date, end: Date) {
+        var baseRange = (start: Date(), end: Date())
+        let calendar = Calendar.current
+        // Start at the first day of the selected date's month
+        let comps = calendar.dateComponents([.year, .month], from: selectedMonth)
+        if let monthStart = calendar.date(from: comps) {
+            // End at the exact selected date (cut-off)
+            let dayEnd = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: selectedMonth) ?? selectedMonth
+            baseRange = (start: monthStart, end: dayEnd)
+        }
+        return baseRange
+    }
 
     // Savings → Expenses transfer validation helper
     private var savingsTransferValidation: (isValid: Bool, message: String) {
@@ -24,7 +37,7 @@ struct ExpensesAccountView: View {
 
     // MARK: - Filtered Transaction Data (based on selected time filter)
     private var currentMonthTransactions: [Transaction] {
-        let range = selectedChartFilter.dateRange
+        let range = dateRange
         return account.transactionsForDateRange(from: range.start, to: range.end)
     }
     
@@ -56,13 +69,10 @@ struct ExpensesAccountView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section(header: Text(getDateRangeDisplay())) {
+                Section(header: Text("Account Balance")) {
                     HStack {                   
                         VStack(alignment: .leading, spacing: 4) {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Account Balance")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
                                 Text("₡\(Int(account.netBalance).formatted())")
                                     .font(.title2.monospacedDigit())
                                     .fontWeight(.bold)
@@ -276,21 +286,18 @@ struct ExpensesAccountView: View {
                 }
             }
             .navigationTitle("Expenses")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    DatePicker(
+                        "Select Month",
+                        selection: $selectedMonth,
+                        displayedComponents: [.date]
+                    )
+                    .datePickerStyle(.compact)
+                    .labelsHidden()
+                }
+            }
         }
-    }
-    
-    private func getDateRangeDisplay() -> String {
-        let range = selectedChartFilter.dateRange
-        let formatter = DateFormatter()
-        switch selectedChartFilter {
-        case .oneMonth:
-            formatter.dateFormat = "d MMM yyyy"
-        default:
-            formatter.dateFormat = "MMM yyyy"
-        }
-        let startString = formatter.string(from: range.start)
-        let endString = formatter.string(from: range.end)
-        return "\(startString) - \(endString)"
     }
     
     var balanceChartSection: some View {
@@ -344,7 +351,7 @@ struct ExpensesAccountView: View {
                     }
                 }
                 .chartXAxis {
-                    AxisMarks(values: .automatic(desiredCount: selectedChartFilter == .oneMonth ? 6 : 3)) { value in
+                    AxisMarks(values: .automatic(desiredCount: 6)) { value in
                         AxisValueLabel()
                     }
                 }
@@ -358,28 +365,11 @@ struct ExpensesAccountView: View {
                 )
                 .frame(height: 250)
             }
-            
-            // Time filter buttons at the bottom
-            HStack {
-                Spacer()
-                HStack(spacing: 6) {
-                    ForEach(ChartTimeFilter.allCases, id: \.self) { filter in
-                        Button(action: {
-                            selectedChartFilter = filter
-                        }) {
-                            Text(filter.rawValue)
-                                .font(.caption.bold())
-                                .foregroundColor(selectedChartFilter == filter ? .white : .gray)
-                        }
-                    }
-                }
-                Spacer()
-            }
         }
     }
     
     func getFilteredChartData() -> [(month: String, balance: Double)] {
-        let dateRange = selectedChartFilter.dateRange
+        let dateRange = dateRange
         let calendar = Calendar.current
         var result: [(month: String, balance: Double)] = []
         var runningBalance: Double = 0
@@ -402,7 +392,7 @@ struct ExpensesAccountView: View {
         guard !filteredTransactions.isEmpty else {
             // If no transactions in range, show the starting balance
             let formatter = DateFormatter()
-            formatter.dateFormat = selectedChartFilter == .oneMonth ? "MMM d" : "MMM yyyy"
+            formatter.dateFormat = "MMM d"
             result.append((month: formatter.string(from: dateRange.start), balance: runningBalance))
             return result
         }
@@ -435,56 +425,17 @@ struct ExpensesAccountView: View {
         var intervals: [(start: Date, end: Date, label: String)] = []
         
         let formatter = DateFormatter()
-        
-        switch selectedChartFilter {
-        case .oneMonth:
-            formatter.dateFormat = "MMM d"
-            var currentDate = start
-            while currentDate < end {
-                let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? end
-                intervals.append((
-                    start: currentDate,
-                    end: min(nextDate, end),
-                    label: formatter.string(from: currentDate)
-                ))
-                currentDate = nextDate
-            }
-        case .threeMonths:
-            formatter.dateFormat = "MMM d"
-            var currentDate = start
-            while currentDate < end {
-                let nextDate = calendar.date(byAdding: .day, value: 14, to: currentDate) ?? end
-                intervals.append((
-                    start: currentDate,
-                    end: min(nextDate, end),
-                    label: formatter.string(from: currentDate)
-                ))
-                currentDate = nextDate
-            }
-        case .sixMonths:
-            formatter.dateFormat = "MMM yyyy"
-            var currentDate = calendar.dateInterval(of: .month, for: start)?.start ?? start
-            while currentDate < end {
-                let nextDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? end
-                intervals.append((
-                    start: currentDate,
-                    end: min(nextDate, end),
-                    label: formatter.string(from: currentDate)
-                ))
-                currentDate = nextDate
-            }
-        case .oneYear:
-            formatter.dateFormat = "MMM yyyy"
-            var currentDate = calendar.dateInterval(of: .month, for: start)?.start ?? start
-            while currentDate < end {
-                let nextDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? end
-                intervals.append((
-                    start: currentDate,
-                    end: min(nextDate, end),
-                    label: formatter.string(from: currentDate)
-                ))
-                currentDate = nextDate
-            }
+
+        formatter.dateFormat = "MMM d"
+        var currentDate = start
+        while currentDate < end {
+            let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? end
+            intervals.append((
+                start: currentDate,
+                end: min(nextDate, end),
+                label: formatter.string(from: currentDate)
+            ))
+            currentDate = nextDate
         }
         
         return intervals

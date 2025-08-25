@@ -72,6 +72,21 @@ struct SavingsView: View {
     @ObservedObject private var savingsAccount = SavingsAccount.shared
     @ObservedObject private var expensesAccount = ExpensesAccount.shared
     @State private var selectedChartFilter: ChartTimeFilter = .oneMonth
+    // Selected cutoff date (defaults to today)
+    @State private var selectedDate: Date = Date()
+
+    // Effective date range taking cutoff into account for 1-month filter
+    private var effectiveDateRange: (start: Date, end: Date) {
+        if selectedChartFilter == .oneMonth {
+            let calendar = Calendar.current
+            let comps = calendar.dateComponents([.year, .month], from: selectedDate)
+            let monthStart = calendar.date(from: comps) ?? selectedDate
+            let dayEnd = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: selectedDate) ?? selectedDate
+            return (start: monthStart, end: dayEnd)
+        } else {
+            return selectedChartFilter.dateRange
+        }
+    }
     
     // Computed transfer-validation status
     private var transferValidation: (isValid: Bool, message: String) {
@@ -99,6 +114,16 @@ struct SavingsView: View {
                 }
             }
             .navigationTitle("Savings")
+            .toolbar {
+                // Show date picker only for single-month view
+                if selectedChartFilter == .oneMonth {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        DatePicker("Select Date", selection: $selectedDate, displayedComponents: [.date])
+                            .datePickerStyle(.compact)
+                            .labelsHidden()
+                    }
+                }
+            }
         }
     }
 }
@@ -288,7 +313,7 @@ private extension SavingsView {
     }
     
     func getFilteredChartData() -> [(month: String, balance: Double)] {
-        let dateRange = selectedChartFilter.dateRange
+        let dateRange = effectiveDateRange
         let calendar = Calendar.current
         var result: [(month: String, balance: Double)] = []
         var runningBalance: Double = 0
@@ -376,7 +401,7 @@ private extension SavingsView {
     }
     
     func dateRangeDisplay() -> String {
-        let range = selectedChartFilter.dateRange
+        let range = effectiveDateRange
         let formatter = DateFormatter()
         switch selectedChartFilter {
         case .oneMonth:
