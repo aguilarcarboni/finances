@@ -256,19 +256,6 @@ class SavingsAccount: ObservableObject, Account {
         return summary.netBalance
     }
     
-    // MARK: - Transfer Validation
-    func validateTransfersWithExpenses(_ expensesAccount: ExpensesAccount) -> (isValid: Bool, message: String) {
-        let expensesSavingsTransfers = expensesAccount.debitsForCategory("Savings")
-        let savingsIncomingTransfers = creditsForCategory("Savings") // All savings come in as generic "Savings"
-        
-        let isValid = abs(expensesSavingsTransfers - savingsIncomingTransfers) < 1.0 // Allow for rounding
-        let message = isValid 
-            ? "✅ Transfers match perfectly" 
-            : "⚠️ Transfer mismatch: ₡\(Int(abs(expensesSavingsTransfers - savingsIncomingTransfers)).formatted()) difference"
-        
-        return (isValid, message)
-    }
-    
     // MARK: - Financial Goal Management
     func updateEmergencyFundTarget(_ newTarget: Double) {
         emergencyFundTarget = newTarget
@@ -314,32 +301,6 @@ class SavingsAccount: ObservableObject, Account {
         savingsAllocationCategories.removeAll { $0.name == name }
     }
 
-    // MARK: - CSV Import
-    /// Import transactions from a single CSV file. Uses `SavingsCSVParser` to decode rows.
-    func importTransactions(fromCSV url: URL) {
-        let newTransactions = SavingsCSVParser.parseCSV(at: url)
-        guard !newTransactions.isEmpty else { return }
-
-        for transaction in newTransactions {
-            let exists = transactions.contains { existing in
-                existing.date == transaction.date &&
-                existing.name == transaction.name &&
-                existing.amount == transaction.amount &&
-                existing.type == transaction.type
-            }
-
-            if !exists {
-                addTransaction(transaction)
-            }
-        }
-    }
-
-    /// Convenience overload ‑ import from multiple CSV files at once.
-    func importTransactions(fromCSV urls: [URL]) {
-        urls.forEach { importTransactions(fromCSV: $0) }
-    }
-
     // MARK: - Singleton Init
-    /// Data is now supplied exclusively by CSV import (see `SavingsCSVImportManager`).
-    private init() {}
+    private init() { setupMockData() }
 } 

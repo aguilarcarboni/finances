@@ -357,90 +357,9 @@ class ExpensesAccount: ObservableObject, Account {
         return result.reversed()
     }
     
-    // MARK: - Transfer Validation
-    /// Validates that transfers moving FROM the Savings account INTO the Expenses account match.
-    /// - Parameter savingsAccount: The `SavingsAccount` instance that should mirror outgoing transfers.
-    /// - Returns: A tuple indicating whether the totals match and a user-friendly message.
-    func validateTransfersFromSavings(_ savingsAccount: SavingsAccount) -> (isValid: Bool, message: String) {
-        // Money leaving the Savings account (debit) and arriving in the Expenses account (credit)
-        // should have the same total amount under the generic "Savings" category.
-        let expensesIncomingTransfers = creditsForCategory("Savings")
-        let savingsOutgoingTransfers = savingsAccount.debitsForCategory("Savings")
-        
-        let difference = abs(expensesIncomingTransfers - savingsOutgoingTransfers)
-        let isValid = difference < 1.0 // Allow small rounding differences
-        let message = isValid
-            ? "✅ Savings → Expenses transfers match perfectly"
-            : "⚠️ Transfer mismatch: ₡\(Int(difference).formatted()) difference"
-        
-        return (isValid, message)
-    }
-
-    /// Validates that transfers moving FROM the Expenses account INTO the Wise account match.
-    /// The category used for these transfers should be "Wise".
-    /// - Parameter wiseAccount: The `WiseAccount` instance that should mirror incoming transfers.
-    /// - Returns: A tuple indicating whether the totals match and a user-friendly message.
-    func validateTransfersToWise(_ wiseAccount: WiseAccount) -> (isValid: Bool, message: String) {
-        // Money leaving the Expenses account (debit) and arriving in the Wise account (credit)
-        // should have the same total amount under the "Wise" category.
-        let expensesOutgoing = debitsForCategory("Wise")
-        let wiseIncoming = wiseAccount.creditsForCategory("Wise")
-
-        let difference = abs(expensesOutgoing - wiseIncoming)
-        let isValid = difference < 1.0
-        let message = isValid
-            ? "✅ Expenses → Wise transfers match perfectly"
-            : "⚠️ Expenses → Wise mismatch: ₡\(Int(difference).formatted()) difference"
-
-        return (isValid, message)
-    }
-
-    /// Validates that transfers moving FROM the Wise account INTO the Expenses account match.
-    /// The category used for these transfers should be "Wise".
-    /// - Parameter wiseAccount: The `WiseAccount` instance providing outgoing transfers.
-    /// - Returns: A tuple indicating whether the totals match and a user-friendly message.
-    func validateTransfersFromWise(_ wiseAccount: WiseAccount) -> (isValid: Bool, message: String) {
-        // Money leaving the Wise account (debit) and arriving in the Expenses account (credit)
-        let expensesIncoming = creditsForCategory("Wise")
-        let wiseOutgoing = wiseAccount.debitsForCategory("Wise")
-
-        let difference = abs(expensesIncoming - wiseOutgoing)
-        let isValid = difference < 1.0
-        let message = isValid
-            ? "✅ Wise → Expenses transfers match perfectly"
-            : "⚠️ Wise → Expenses mismatch: ₡\(Int(difference).formatted()) difference"
-
-        return (isValid, message)
-    }
+    private init() {}
     
-    // MARK: - Cash-Flow Validation from Assets
-    /// Validates that every revenue-generating asset has at least one matching credit entry in this account.
-    /// - Parameter assets: Collection of assets to check.
-    /// - Returns: Tuple indicating validity and a message.
-    func validateCashFlowFromAssets(_ assets: [Asset]) -> (isValid: Bool, message: String) {
-        var missingAssets: [String] = []
-        for asset in assets where asset.isRevenueGenerating {
-            let assetCredits = credits.filter { $0.category == "Asset Income" && $0.name.contains(asset.name) }
-            if assetCredits.isEmpty {
-                missingAssets.append(asset.name)
-            }
-        }
-        let isValid = missingAssets.isEmpty
-        let message: String
-        if isValid {
-            message = "✅ Cash flow validated"
-        } else {
-            let list = missingAssets.joined(separator: ", ")
-            message = "⚠️ Missing cash flow for: \(list)"
-        }
-        return (isValid, message)
-    }
-    
-    private init() {
-        // Data is loaded via CSV import (ExpensesCSVImportManager)
-    }
-    
-    // Removed mock data generation; transactions are now supplied exclusively by CSV import.
+    // The transaction ledger is optional; the expense plan lives in PlannerStore.
     
     // MARK: - Account Protocol Implementation
     func addTransaction(_ transaction: Transaction) {
@@ -449,29 +368,6 @@ class ExpensesAccount: ObservableObject, Account {
         transactions.sort { $0.date > $1.date }
     }
 
-    // NEW: Import transactions from a CSV file located at the given URL.
-    func importTransactions(fromCSV url: URL) {
-        let newTransactions = ExpensesCSVParser.parseCSV(at: url)
-        guard !newTransactions.isEmpty else { return }
-        // Avoid duplicates by checking for same date, name, amount, and type
-        for transaction in newTransactions {
-            let exists = transactions.contains { existing in
-                existing.date == transaction.date &&
-                existing.name == transaction.name &&
-                existing.amount == transaction.amount &&
-                existing.type == transaction.type
-            }
-            if !exists {
-                addTransaction(transaction)
-            }
-        }
-    }
-
-    // Convenience overload to handle multiple URLs at once.
-    func importTransactions(fromCSV urls: [URL]) {
-        urls.forEach { importTransactions(fromCSV: $0) }
-    }
-    
     func removeTransaction(with id: UUID) {
         transactions.removeAll { $0.id == id }
     }

@@ -70,7 +70,6 @@ extension NumberFormatter {
 
 struct SavingsView: View {
     @ObservedObject private var savingsAccount = SavingsAccount.shared
-    @ObservedObject private var expensesAccount = ExpensesAccount.shared
     @State private var selectedChartFilter: ChartTimeFilter = .oneMonth
     // Selected cutoff date (defaults to today)
     @State private var selectedDate: Date = Date()
@@ -86,11 +85,6 @@ struct SavingsView: View {
         } else {
             return selectedChartFilter.dateRange
         }
-    }
-    
-    // Computed transfer-validation status
-    private var transferValidation: (isValid: Bool, message: String) {
-        savingsAccount.validateTransfersWithExpenses(expensesAccount)
     }
     
     var body: some View {
@@ -117,7 +111,7 @@ struct SavingsView: View {
             .toolbar {
                 // Show date picker only for single-month view
                 if selectedChartFilter == .oneMonth {
-                    ToolbarItem(placement: .navigationBarTrailing) {
+                    ToolbarItem() {
                         DatePicker("Select Date", selection: $selectedDate, displayedComponents: [.date])
                             .datePickerStyle(.compact)
                             .labelsHidden()
@@ -142,14 +136,9 @@ private extension SavingsView {
                         .foregroundColor(.green)
                 }
                 Spacer()
-                HStack(spacing: 4) {
-                    Image(systemName: transferValidation.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                        .foregroundColor(transferValidation.isValid ? .green : .orange)
-                        .font(.caption)
-                    Text(transferValidation.isValid ? "Expenses Credits Validated" : "Check Expenses Credits")
-                        .font(.caption)
-                        .foregroundColor(transferValidation.isValid ? .green : .orange)
-                }
+                Text("Plan-driven")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
     }

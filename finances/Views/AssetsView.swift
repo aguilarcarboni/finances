@@ -20,6 +20,13 @@ struct AssetsView: View {
                     }
             }
             .navigationTitle("Assets")
+            .toolbar {
+                ToolbarItem() {
+                    NavigationLink(destination: LoanPayoffPredictorView()) {
+                        Label("Loan payoff", systemImage: "arrow.down.circle")
+                    }
+                }
+            }
             .sheet(item: $selectedAsset) { asset in
                 AssetDetailView(asset: asset)
             }

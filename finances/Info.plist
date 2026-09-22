@@ -11,14 +11,5 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
-	   <key>NSUbiquitousContainers</key>
-		<dict>
-			<key>iCloud.com.aguilarcarboni.finances</key>
-			<dict>
-			<key>NSUbiquitousContainerIsDocumentScopePublic</key><true/>
-			<key>NSUbiquitousContainerName</key><string>Finances</string>
-			<key>NSUbiquitousContainerSupportedFolderLevels</key><string>Any</string>
-			</dict>
-		</dict>
 </dict>
 </plist>
