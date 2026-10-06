@@ -64,7 +64,6 @@ final class PlannerStore: ObservableObject {
     @Published var usdToCrcRate = 500.0
     @Published var rollingExpenses = PlannerStore.sampleRolling
     @Published var plannedExpenses = PlannerStore.sampleExpenses
-
     static let sampleRolling: [RollingExpensePlan] = [
         RollingExpensePlan(category: "Health and Fitness", name: "Cut Hair", contributionPerPeriod: 6, targetAmount: 24, dueDate: .plannerDate(2026, 11, 15), recurrence: "Every 2 months"),
         RollingExpensePlan(category: "Health and Fitness", name: "Limpieza Dental", contributionPerPeriod: 4, targetAmount: 40, dueDate: .plannerDate(2027, 2, 15), recurrence: "Every 6 months"),
