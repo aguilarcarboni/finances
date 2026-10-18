@@ -1,0 +1,24 @@
+{
+  "start_date": "2026-10-07",
+  "snapshot_time_utc": "2026-10-07T15:27:07Z",
+  "timezone": "America/Costa_Rica",
+  "user_confirmed_account_type": "paper",
+  "user_confirmed_reset": true,
+  "broker_starting_nav_usd": 50467.56,
+  "broker_cash_usd": 50000.00,
+  "unreconciled_nav_minus_cash_usd": 467.56,
+  "strategy_starting_capital_usd": 10000.00,
+  "monthly_simulated_contribution_usd": 250.00,
+  "starting_positions": [],
+  "starting_open_orders": [],
+  "performance_policy": "Start new tracking on October 7. Exclude all pre-reset performance and fills. Keep broker NAV separate from strategy capital. Confirm new fills and commissions before strategy performance calculation; adjust returns for external flows.",
+  "new_instructions": [
+    {"id":"100","symbol":"VOO","side":"BUY","quantity":6,"type":"LIMIT","limit":711.96,"tif":"DAY"},
+    {"id":"101","symbol":"VXUS","side":"BUY","quantity":23,"type":"LIMIT","limit":84.70,"tif":"DAY"},
+    {"id":"102","symbol":"SGOV","side":"BUY","quantity":33,"type":"LIMIT","limit":100.47,"tif":"DAY"}
+  ],
+  "instruction_status": "Created for user submission; not live orders or verified fills",
+  "limit_basis": "Native IBKR snapshots October 7 15:12:17-19 UTC; approximately 15 minutes delayed",
+  "maximum_cost_before_commissions_usd": 9535.37,
+  "strategy_cash_remaining_before_commissions_usd": 464.63
+}
