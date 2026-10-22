@@ -2,7 +2,7 @@
 
 Canonical source: [GitHub `main`](https://github.com/aguilarcarboni/finances/blob/main/docs/portfolio/ibkr-portfolio-strategy.md).
 
-Last reconciled: October 16, 2026. Timezone: America/Costa_Rica. Currency: USD.
+Last reconciled: October 22, 2026. Timezone: America/Costa_Rica. Currency: USD.
 
 This is the canonical record of the user-confirmed strategy, plan and reporting preferences. Read it fresh for every review. Later explicit user decisions take precedence and should be saved here with their confirmation date. Research ideas, hypothetical allocations and planned cash flows are not approvals or executed transactions.
 
@@ -13,13 +13,18 @@ This is the canonical record of the user-confirmed strategy, plan and reporting 
 - Plan **$500 in monthly simulated contributions**, first planned **November 7, 2026**. This replaces the earlier $250/month assumption. Planned contributions are not executed deposits. November 7 is Saturday; regular-session purchases would wait until November 9. No automatic funding or purchases are authorized. Preserve actual funding dates and do not invent later execution dates.
 - The main horizon is lifelong, superseding the earlier 3–5+ year framing. Use 10/20/30-year illustrative horizons where useful. Equity compounding comes through reinvested distributions and growth, not guaranteed interest. Reinvestment is a planning assumption, not permission to enable DRIP.
 - Approximate acceptable drawdown: **10–20%**, with no guaranteed loss cap. A lifelong horizon does not imply increased risk tolerance.
-- **No borrowing or leveraged ETFs.** Keep any individual-stock opportunity sleeve capped around **5% of strategy capital**. SOXL is excluded from this strategy.
+- **Starting allocation target confirmed October 22: 10% individual stocks / 90% ETFs**, replacing the former approximate 5% individual-stock sleeve. Apply the target to the attributable strategy portfolio, not unused broker capital. This is a strategy target, not proof of current allocation or authorization to trade. Temporary execution cash may exist; do not force purchases to eliminate it.
+- Holdings may span **1–5 years or longer**, alongside shorter opportunities held **weeks or days**. The user is not seeking day trading or high-frequency trading. Monthly contributions do not restrict the timing of separately approved purchases or sales between funding dates; no mandatory turnover or one-month minimum holding period is imposed.
+- **Return aspiration: aim toward 8–10% annually if possible.** For planning, interpret this as a long-term annualized nominal total-return goal, not a promised result, a forecast for the remainder of 2026, or a requirement to earn that amount every calendar year. Disclose this planning interpretation. Do not increase forecast returns solely because individual stocks or shorter holding periods are allowed.
+- **No borrowing or leveraged ETFs.** SOXL is excluded from this strategy. The new allocation and return aspiration do not establish a revised numeric drawdown tolerance; the earlier approximate 10–20% preference remains a risk-fit constraint to discuss, not a guaranteed cap.
 
 ## Core, contributions and open decisions
 
 VOO, VXUS and SGOV are the historical core. Quantities of 6 VOO, 23 VXUS and 33 SGOV were previously observed after the reset; they are historical evidence, not current holdings. Refresh positions, orders, fills and commissions before stating execution, cash, allocation or returns.
 
-The former proposed $250 monthly split was $100 VOO, $50 VXUS, $87.50 SGOV and $12.50 opportunity cash. That split is historical and does not define the new $500 plan. A replacement allocation has not been confirmed. Verify fractional-share availability; do not silently double the old split.
+The ETF portion's allocation among equity ETFs, SGOV/Treasury ETFs and any other eligible ETFs remains unconfirmed. The 90% ETF target does not mean 90% equity ETFs, and it does not authorize selling SGOV or eliminating the defensive reserve. Evaluate the return aspiration against the eventual underlying equity/bill mix, concentration and realistic drawdown scenarios before proposing implementation.
+
+The former proposed $250 monthly split was $100 VOO, $50 VXUS, $87.50 SGOV and $12.50 opportunity cash. That split is historical and does not define the new $500 plan. A replacement contribution split has not been confirmed; do not assume every $500 contribution must be split $50 stocks / $450 ETFs rather than used to move the overall portfolio toward its target. Verify fractional-share availability; do not silently double the old split.
 
 There is no confirmed joint asset/amount selection from the earlier October 12 purchase discussion in the available record. Provide a sourced shortlist without repeatedly soliciting choices, assuming MSFT/NVDA purchases, duplicating core purchases or creating automatic orders. Later approved purchases belong to the October 7 strategy cohort but retain actual execution dates.
 
@@ -58,7 +63,7 @@ Assess current valuations versus growth, earnings, guidance, cash flow, rates, s
 
 Maintain a short prioritized table: candidate, supporting evidence, potential upside driver, first rejection risk, what would make it investable and what would invalidate the thesis. Consider verified strategy cash and existing holdings. No unsupported targets/probabilities, predicted winners, order instructions or asset selection on the user's behalf.
 
-Include clearly labeled hypothetical projections comparing lower-risk broad-ETF/T-bill mixes, an ETF core, and a core with an individual-stock sleeve capped around 5%. Scenario allocations are unapproved alternatives. Disclose nominal return assumptions, weak/middle/strong conditions and stress losses, including stresses exceeding tolerance. Give individual stocks no automatic expected-return premium. Broad unleveraged ETFs diversify company risk; sector, leveraged and single-stock ETFs can be risky.
+Include clearly labeled hypothetical projections comparing lower-risk broad-ETF/T-bill mixes, an ETF core, and a core with the confirmed 10% individual-stock starting target. The 10% stocks / 90% ETFs category target is approved; specific securities, internal ETF weights, alternative scenario mixes and execution remain unapproved. Disclose nominal return assumptions, weak/middle/strong conditions and stress losses, including stresses exceeding tolerance. Give individual stocks no automatic expected-return premium. Broad unleveraged ETFs diversify company risk; sector, leveraged and single-stock ETFs can be risky.
 
 Separate initial capital and actual/planned $500 monthly contributions from hypothetical gains. Preserve planned and actual dates; disclose assumed later contribution cadence. Show nominal versus real values when material. Projections are illustrations, not forecasts or promises.
 
@@ -83,5 +88,7 @@ All broker work remains read-only: no order instructions, trades, rebalancing, b
 - **October 16, 2026:** User requested substantially less text and more Visualize. Reviews now default to visual-first delivery with brief takeaways; this supersedes the earlier long-form presentation preference while retaining thorough research, accounting checks and read-only boundaries.
 
 - **October 18, 2026:** User requested moving the canonical strategy and its baseline evidence into `aguilarcarboni/finances` on GitHub. GitHub `main` is now the source of truth; the former iCloud document is a location pointer. This changes storage, not the investment mandate.
+
+- **October 22, 2026:** User confirmed starting with 10% individual stocks / 90% ETFs, superseding the approximate 5% stock sleeve. Permit a mix of 1–5+ year holdings and researched weeks/days opportunities; monthly cash inputs are separate from trading cadence, with no day-trading/high-frequency objective. Aim toward 8–10% annually if possible (planning interpretation: long-term annualized nominal total return, not a guarantee or short-term forecast). ETF asset-class mix, specific securities, contribution split and execution remain open; no new numeric drawdown tolerance was confirmed. Existing no-leverage, read-only review, accounting and funding rules remain in force.
 
 Update this file when the user explicitly confirms a strategy or plan change, recording its date and superseded rule. Routine scheduled reviews read this file and do not silently rewrite the mandate. Keep market observations and proposed alternatives in the review until the user approves a durable change.
