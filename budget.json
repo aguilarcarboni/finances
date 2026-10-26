@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "updated_on": "2026-10-26",
+  "timezone": "America/Costa_Rica",
+  "planning_currency": "USD",
+  "report_currency": "CRC",
+  "planning_usd_to_crc_rate": "500.00",
+  "provenance": {
+    "source_commit": "267b8b7cdd4bfad86f0782eee0bb92b79ae27c28",
+    "status": "configured_plan_migrated_from_app",
+    "note": "Planning values, not proof of deposits, payments or balances. Original sample due dates are retained for review."
+  },
+  "pay_periods": [
+    {
+      "id": "first",
+      "label": "First half",
+      "days": "1-15",
+      "salary": "700.00"
+    },
+    {
+      "id": "second",
+      "label": "Second half",
+      "days": "16-month-end",
+      "salary": "700.00"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "first-gas",
+      "period": "first",
+      "category": "Transportation",
+      "name": "Gas",
+      "amount": "70.00"
+    },
+    {
+      "id": "first-climbing",
+      "period": "first",
+      "category": "Health and Fitness",
+      "name": "Climbing",
+      "amount": "40.00"
+    },
+    {
+      "id": "first-fisioterapia",
+      "period": "first",
+      "category": "Health and Fitness",
+      "name": "Fisioterapia",
+      "amount": "30.00"
+    },
+    {
+      "id": "first-car-debt",
+      "period": "first",
+      "category": "Car Maintenance",
+      "name": "Car Debt",
+      "amount": "150.00"
+    },
+    {
+      "id": "first-seguro-bac",
+      "period": "first",
+      "category": "Subscriptions",
+      "name": "Seguro BAC",
+      "amount": "3.00"
+    },
+    {
+      "id": "first-ea-play-ps",
+      "period": "first",
+      "category": "Subscriptions",
+      "name": "EA Play (PS)",
+      "amount": "5.99"
+    },
+    {
+      "id": "first-racingline",
+      "period": "first",
+      "category": "Subscriptions",
+      "name": "RacingLine",
+      "amount": "1.99"
+    },
+    {
+      "id": "first-ps",
+      "period": "first",
+      "category": "Subscriptions",
+      "name": "PS+",
+      "amount": "10.99"
+    },
+    {
+      "id": "first-iracing",
+      "period": "first",
+      "category": "Subscriptions",
+      "name": "iRacing",
+      "amount": "14.75"
+    },
+    {
+      "id": "first-chatgpt",
+      "period": "first",
+      "category": "Subscriptions",
+      "name": "ChatGPT",
+      "amount": "20.00"
+    },
+    {
+      "id": "first-admin-compass",
+      "period": "first",
+      "category": "Subscriptions",
+      "name": "Admin Compass",
+      "amount": "5.00"
+    },
+    {
+      "id": "second-gas",
+      "period": "second",
+      "category": "Transportation",
+      "name": "Gas",
+      "amount": "70.00"
+    },
+    {
+      "id": "second-climbing",
+      "period": "second",
+      "category": "Health and Fitness",
+      "name": "Climbing",
+      "amount": "40.00"
+    },
+    {
+      "id": "second-smartfit",
+      "period": "second",
+      "category": "Health and Fitness",
+      "name": "SmartFit",
+      "amount": "40.00"
+    },
+    {
+      "id": "second-car-debt",
+      "period": "second",
+      "category": "Car Maintenance",
+      "name": "Car Debt",
+      "amount": "150.00"
+    },
+    {
+      "id": "second-iptv",
+      "period": "second",
+      "category": "Subscriptions",
+      "name": "IPTV",
+      "amount": "20.00"
+    },
+    {
+      "id": "second-apple-one",
+      "period": "second",
+      "category": "Subscriptions",
+      "name": "Apple One",
+      "amount": "27.00"
+    },
+    {
+      "id": "second-vision-mundial",
+      "period": "second",
+      "category": "Donations",
+      "name": "Vision Mundial",
+      "amount": "10.00"
+    }
+  ],
+  "rolling_expenses": [
+    {
+      "id": "cut-hair",
+      "category": "Health and Fitness",
+      "name": "Cut Hair",
+      "contribution_per_period": "6.00",
+      "target_amount": "24.00",
+      "due_date": "2026-11-15",
+      "recurrence": "Every 2 months",
+      "due_date_status": "migrated_app_default_needs_review"
+    },
+    {
+      "id": "limpieza-dental",
+      "category": "Health and Fitness",
+      "name": "Limpieza Dental",
+      "contribution_per_period": "4.00",
+      "target_amount": "40.00",
+      "due_date": "2027-02-15",
+      "recurrence": "Every 6 months",
+      "due_date_status": "migrated_app_default_needs_review"
+    },
+    {
+      "id": "health-exams",
+      "category": "Health and Fitness",
+      "name": "Health Exams",
+      "contribution_per_period": "6.00",
+      "target_amount": "72.00",
+      "due_date": "2026-09-15",
+      "recurrence": "Every 6 months",
+      "due_date_status": "migrated_app_default_needs_review"
+    },
+    {
+      "id": "eye-exam",
+      "category": "Health and Fitness",
+      "name": "Eye Exam",
+      "contribution_per_period": "2.50",
+      "target_amount": "30.00",
+      "due_date": "2026-09-15",
+      "recurrence": "Every 6 months",
+      "due_date_status": "migrated_app_default_needs_review"
+    },
+    {
+      "id": "marchamo",
+      "category": "Car Maintenance",
+      "name": "Marchamo",
+      "contribution_per_period": "75.00",
+      "target_amount": "500.00",
+      "due_date": "2026-12-01",
+      "recurrence": "Yearly",
+      "due_date_status": "migrated_app_default_needs_review"
+    },
+    {
+      "id": "car-service",
+      "category": "Car Maintenance",
+      "name": "Car Service",
+      "contribution_per_period": "23.33",
+      "target_amount": "280.00",
+      "due_date": "2027-09-01",
+      "recurrence": "Every 6 months",
+      "due_date_status": "migrated_app_default_needs_review"
+    },
+    {
+      "id": "wash-car",
+      "category": "Car Maintenance",
+      "name": "Wash Car",
+      "contribution_per_period": "7.50",
+      "target_amount": "30.00",
+      "due_date": "2026-10-15",
+      "recurrence": "Every 2 months",
+      "due_date_status": "migrated_app_default_needs_review"
+    }
+  ],
+  "savings_policy": {
+    "status": "unverified_app_defaults",
+    "currency": "CRC",
+    "emergency_fund_target": "250000.00",
+    "excess_allocation": [
+      {
+        "name": "Trips",
+        "share": "0.5"
+      },
+      {
+        "name": "Long term",
+        "share": "0.5"
+      }
+    ],
+    "note": "Preserved from the Savings tab. Confirm before treating as an active commitment; no balance is implied."
+  },
+  "actuals_policy": {
+    "transaction_source": "Personal Gmail BAC label, read-only through the Finances plugin",
+    "confirmed_context_source": "Dated user confirmations retained in the invoking automation memory or current conversation",
+    "note": "No actual payments or balances are established by this file. The old zero paid/saved defaults and randomized savings transactions are not actuals. Unknown amounts remain unknown; confirmed zero balances retain their dated evidence."
+  }
+}

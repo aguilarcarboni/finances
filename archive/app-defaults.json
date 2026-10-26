@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "source_commit": "267b8b7cdd4bfad86f0782eee0bb92b79ae27c28",
+  "status": "inactive_or_mock_app_defaults_not_current_financial_evidence",
+  "legacy_expenses_account": {
+    "currency": "CRC",
+    "status": "superseded_by_budget_json",
+    "expense_budget": [
+      {
+        "name": "Car Loan",
+        "amount": "180000.00"
+      },
+      {
+        "name": "Subscriptions",
+        "amount": "30000.00"
+      },
+      {
+        "name": "Transportation",
+        "amount": "65000.00"
+      },
+      {
+        "name": "Savings",
+        "amount": "150000.00"
+      },
+      {
+        "name": "Misc",
+        "amount": "275000.00"
+      }
+    ],
+    "income_budget": [
+      {
+        "name": "Salary",
+        "amount": "700000.00"
+      },
+      {
+        "name": "Other",
+        "amount": "0.00"
+      }
+    ]
+  },
+  "mock_assets": {
+    "currency": "CRC",
+    "status": "loadMockAssets_examples_require_confirmation",
+    "assets": [
+      {
+        "name": "Macbook Air M3",
+        "type": "Computer",
+        "category": "Tangible",
+        "acquisition_date_epoch_seconds": 1719859200,
+        "acquisition_price": "871190.00",
+        "market_value": "562948.00"
+      },
+      {
+        "name": "Nissan Magnite",
+        "type": "Car",
+        "category": "Tangible",
+        "acquisition_date": null,
+        "original_acquisition_date_rule": "Two calendar months before app launch; no fixed date was stored",
+        "acquisition_price": "12823500.00",
+        "market_value": "12000000.00",
+        "custom_annual_depreciation_rate": "-0.15",
+        "expense_category": "Car Loan",
+        "loan": {
+          "original_principal": "9733500.00",
+          "annual_interest_rate_percent": "7.5",
+          "term_years": 8,
+          "down_payment": "3090000.00",
+          "down_payment_transaction_name": "Nissan Magnite Down Payment",
+          "down_payment_transaction_category": "Loan Down Payment",
+          "start_date": null,
+          "original_start_date_rule": "Same computed date as asset acquisition",
+          "status_default": "Active Loan",
+          "paid_off_date_default": null
+        }
+      }
+    ]
+  },
+  "discarded_runtime_examples": {
+    "savings_transactions": "SavingsAccount.setupMockData generated random amounts and relative dates on each launch; excluded from financial records.",
+    "planner_payment_defaults": {
+      "paid_amount": "0.00",
+      "rolling_saved_amount": "0.00",
+      "funded_periods": [],
+      "status": "initial_UI_state_not_confirmed_actuals"
+    },
+    "runtime_edits": "App state was in memory only. No repository persistence or network layer was found; unsaved running-session edits cannot be reconstructed from source."
+  },
+  "source_files": {
+    "finances/PlannerStore.swift": "83c4cfe7517f35b6ff64cc45dc512611cf902214",
+    "finances/Models/Accounts/ExpensesAccount.swift": "b04496775b0fd778d30b4e639d92e2553d94149a",
+    "finances/Models/Accounts/SavingsAccount.swift": "74cd896886b09f678230ad4ba27c67d582d29491",
+    "finances/Managers/AssetsManager.swift": "2bcd6667b316273f4b02a8df93ab37fc018600a9"
+  }
+}
