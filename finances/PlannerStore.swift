@@ -91,7 +91,9 @@ final class PlannerStore: ObservableObject {
         PlannedExpense(period: .second, category: "Health and Fitness", name: "SmartFit", plannedAmount: 40),
         PlannedExpense(period: .second, category: "Car Maintenance", name: "Car Debt", plannedAmount: 150),
         PlannedExpense(period: .second, category: "Subscriptions", name: "IPTV", plannedAmount: 20),
-        PlannedExpense(period: .second, category: "Subscriptions", name: "Apple One", plannedAmount: 27)
+        PlannedExpense(period: .second, category: "Subscriptions", name: "Apple One", plannedAmount: 27),
+        // CRC 5,000 monthly at the planning rate of CRC 500 per USD.
+        PlannedExpense(period: .second, category: "Donations", name: "Vision Mundial", plannedAmount: 10)
     ]
 
     var activeSalary: Double { selectedPeriod == .first ? firstHalfSalary : secondHalfSalary }
