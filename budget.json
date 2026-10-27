@@ -33,13 +33,6 @@
       "amount": "70.00"
     },
     {
-      "id": "first-climbing",
-      "period": "first",
-      "category": "Health and Fitness",
-      "name": "Climbing",
-      "amount": "40.00"
-    },
-    {
       "id": "first-fisioterapia",
       "period": "first",
       "category": "Health and Fitness",
@@ -110,18 +103,11 @@
       "amount": "70.00"
     },
     {
-      "id": "second-climbing",
-      "period": "second",
-      "category": "Health and Fitness",
-      "name": "Climbing",
-      "amount": "40.00"
-    },
-    {
       "id": "second-smartfit",
       "period": "second",
       "category": "Health and Fitness",
       "name": "SmartFit",
-      "amount": "40.00"
+      "amount": "120.00"
     },
     {
       "id": "second-car-debt",
