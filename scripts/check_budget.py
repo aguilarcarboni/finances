@@ -64,6 +64,12 @@ def validate(plan):
     for row in expenses:
         require(row['period'] in {'first', 'second'}, f'unknown expense period: {row["period"]}')
         money(row['amount'])
+        if 'amount_crc' in row:
+            money(row['amount_crc'])
+        if 'payment_day' in row:
+            require(type(row['payment_day']) is int and 1 <= row['payment_day'] <= 31, 'invalid monthly payment day')
+            require(row.get('recurrence') == 'Monthly', 'payment_day requires Monthly recurrence')
+            date.fromisoformat(row['confirmed_on'])
     for row in rolling:
         money(row['contribution_per_period'])
         money(row['target_amount'])
@@ -91,7 +97,7 @@ def validate(plan):
         salary = money(period['salary'])
         expected_days = '1-15' if period['id'] == 'first' else '16-month-end'
         require(period['days'] == expected_days and isinstance(period['label'], str) and period['label'].strip(), 'invalid period definition')
-        regular = sum((money(r['amount']) for r in expenses if r['period'] == period['id']), Decimal(0))
+        regular = sum(((money(r['amount_crc']) / rate if 'amount_crc' in r else money(r['amount'])) for r in expenses if r['period'] == period['id']), Decimal(0))
         totals.append((period['label'], salary, regular, reserve, salary - regular - reserve))
     return totals, rate
 

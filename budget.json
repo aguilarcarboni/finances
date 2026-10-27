@@ -4,7 +4,7 @@
   "timezone": "America/Costa_Rica",
   "planning_currency": "USD",
   "report_currency": "CRC",
-  "planning_usd_to_crc_rate": "500.00",
+  "planning_usd_to_crc_rate": "450.04",
   "provenance": {
     "source_commit": "267b8b7cdd4bfad86f0782eee0bb92b79ae27c28",
     "status": "configured_plan_migrated_from_app",
@@ -107,7 +107,11 @@
       "period": "second",
       "category": "Health and Fitness",
       "name": "SmartFit",
-      "amount": "120.00"
+      "amount": "133.32",
+      "amount_crc": "60000.00",
+      "payment_day": 26,
+      "recurrence": "Monthly",
+      "confirmed_on": "2026-10-26"
     },
     {
       "id": "second-car-debt",
@@ -230,5 +234,12 @@
     "transaction_source": "Personal Gmail BAC label, read-only through the Finances plugin",
     "confirmed_context_source": "Dated user confirmations retained in the invoking automation memory or current conversation",
     "note": "No actual payments or balances are established by this file. The old zero paid/saved defaults and randomized savings transactions are not actuals. Unknown amounts remain unknown; confirmed zero balances retain their dated evidence."
+  },
+  "planning_exchange_rate_evidence": {
+    "as_of": "2026-10-26",
+    "basis": "BCCR reference compra: USD converted to CRC",
+    "source_url": "https://www.bgeneralcr.com/historico/",
+    "reference_buy": "450.04",
+    "reference_sell": "456.32"
   }
 }

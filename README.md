@@ -10,6 +10,8 @@ This repository stores the personal spending plan and paper IBKR portfolio strat
 
 Amounts and rates are decimal strings, for example `"700.00"`. Salary, regular expenses, and rolling targets use `planning_currency` (USD); the savings policy explicitly uses CRC. `planning_usd_to_crc_rate` is a planning assumption, not a bank settlement rate. Reports display CRC. Keep stable IDs when changing names or amounts.
 
+A regular expense may include `amount_crc` when the user confirms a fixed colón bill. This exact CRC amount takes precedence over converting its `amount`; `amount` remains a rounded USD planning equivalent. Preserve `amount_crc` when the exchange rate changes. Optional `payment_day` and `recurrence` record a confirmed monthly schedule, with `confirmed_on` dating that confirmation; they do not establish payment. A verified current rate can replace the planning rate with its date, source and buy/sell basis recorded in `planning_exchange_rate_evidence`. Use the compra rate for USD income converted to CRC; it remains a reference, not a verified bank settlement rate.
+
 `first` covers days 1–15, and `second` covers day 16 through month end. A regular expense belongs to one period. Each rolling `contribution_per_period` applies to both periods. Monthly regular expenses sum both periods; monthly rolling reserves are twice the per-period sum. Planned remainder subtracts both regular expenses and rolling reserves from salary. These calculations describe the plan, not available cash.
 
 Run the dependency-free check after editing:
