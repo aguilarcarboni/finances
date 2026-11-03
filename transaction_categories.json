@@ -4,13 +4,32 @@
   "timezone": "America/Costa_Rica",
   "notes": [
     "Only user-confirmed assignments belong here. Unlisted transactions remain unclassified.",
-    "Match transaction-specific assignments by original date, exact merchant, original currency and amount; a transaction-specific assignment takes precedence over merchant inference."
+    "Match transaction-specific assignments by original date, exact merchant, original currency and amount; a transaction-specific assignment takes precedence over merchant inference.",
+    "Use only allowed_categories; ask before introducing a category. Gym is a service under Health and Fitness, not a separate category. Compass includes its administration charge and tolls."
   ],
   "categories_without_allowance": [
     "Food",
-    "Misc"
+    "Misc",
+    "Racing",
+    "Weed"
   ],
   "transactions": [
+    {
+      "date": "2026-10-05",
+      "merchant": "AUTO MERCADO GUACHIPEL",
+      "currency": "CRC",
+      "amount": "1425.00",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-14",
+      "merchant": "SAN JOSE INDOOR CLU",
+      "currency": "CRC",
+      "amount": "1400.00",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
     {
       "date": "2026-10-15",
       "merchant": "GASOLINERA BARRANTES Y",
@@ -20,11 +39,192 @@
       "confirmed_on": "2026-11-03"
     },
     {
+      "date": "2026-10-15",
+      "merchant": "LA PARRILLA CALLEJERA",
+      "currency": "CRC",
+      "amount": "6000.00",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-15",
+      "merchant": "P1 MARKET",
+      "currency": "CRC",
+      "amount": "31500.00",
+      "category": "Racing",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-16",
+      "merchant": "FRESH MARKET CARIARI",
+      "currency": "CRC",
+      "amount": "8885.00",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-16",
+      "merchant": "SPOON ESCAZU VILLAGE",
+      "currency": "CRC",
+      "amount": "2100.00",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-16",
+      "merchant": "WALMART ESCAZU OCN00PV",
+      "currency": "CRC",
+      "amount": "1398.00",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-17",
+      "merchant": "FRESH MARKET CARIARI",
+      "currency": "CRC",
+      "amount": "5665.00",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-18",
+      "merchant": "MC DONALDS SABANILLA",
+      "currency": "CRC",
+      "amount": "5690.00",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-18",
+      "merchant": "VINDI",
+      "currency": "CRC",
+      "amount": "1600.00",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-19",
+      "merchant": "COBRO ADMINISTRACION C",
+      "currency": "CRC",
+      "amount": "2432.44",
+      "category": "Compass",
+      "confirmed_on": "2026-11-03",
+      "service": "Compass"
+    },
+    {
+      "date": "2026-10-20",
+      "merchant": "FUNDACION VISION MUNDI",
+      "currency": "CRC",
+      "amount": "5000.00",
+      "category": "Donations",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-20",
+      "merchant": "UBER BV USD-USD COSTA",
+      "currency": "USD",
+      "amount": "7.26",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-22",
+      "merchant": "SPOON ESCAZU VILLAGE",
+      "currency": "CRC",
+      "amount": "2100.00",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-22",
+      "merchant": "WALMART ESCAZU OCN00PV",
+      "currency": "CRC",
+      "amount": "1398.00",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-23",
+      "merchant": "UBER EATS COSTA RICA",
+      "currency": "USD",
+      "amount": "37.18",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-23",
+      "merchant": "WALMART ESCAZU OCN0",
+      "currency": "CRC",
+      "amount": "4150.00",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-25",
+      "merchant": "UBER EATS COSTA RICA",
+      "currency": "USD",
+      "amount": "33.77",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-26",
+      "merchant": "APPLE.COM/BILL",
+      "currency": "USD",
+      "amount": "16.95",
+      "category": "Subscriptions",
+      "confirmed_on": "2026-11-03",
+      "service": "Apple One"
+    },
+    {
+      "date": "2026-10-26",
+      "merchant": "CASA ALTU",
+      "currency": "CRC",
+      "amount": "9500.00",
+      "category": "Health and Fitness",
+      "confirmed_on": "2026-11-03",
+      "service": "Gym"
+    },
+    {
       "date": "2026-10-27",
       "merchant": "DELTA PALERMO",
       "currency": "CRC",
       "amount": "10000.00",
       "category": "Transportation",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-28",
+      "merchant": "GLOBAL VIA RUTA 27",
+      "currency": "CRC",
+      "amount": "380.00",
+      "category": "Compass",
+      "confirmed_on": "2026-11-03",
+      "service": "Toll"
+    },
+    {
+      "date": "2026-10-28",
+      "merchant": "SMOKE VALLEY LA CAL",
+      "currency": "CRC",
+      "amount": "27000.00",
+      "category": "Weed",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-30",
+      "merchant": "APPLE.COM/BILL",
+      "currency": "USD",
+      "amount": "9.99",
+      "category": "Subscriptions",
+      "confirmed_on": "2026-11-03",
+      "service": "Apple One"
+    },
+    {
+      "date": "2026-10-30",
+      "merchant": "PARQUE NACIONAL MANUEL",
+      "currency": "CRC",
+      "amount": "3616.00",
+      "category": "Misc",
       "confirmed_on": "2026-11-03"
     },
     {
@@ -42,6 +242,42 @@
       "amount": "5055.00",
       "category": "Food",
       "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-11-02",
+      "merchant": "CINEMARK COSTA RICA WE",
+      "currency": "CRC",
+      "amount": "7120.00",
+      "category": "Misc",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-11-02",
+      "merchant": "GRUPO MEDICO QUIRUR",
+      "currency": "CRC",
+      "amount": "36000.00",
+      "category": "Misc",
+      "confirmed_on": "2026-11-03"
     }
+  ],
+  "merchant_rules": [
+    {
+      "merchant": "APPLE.COM/BILL",
+      "category": "Subscriptions",
+      "service": "Apple One",
+      "confirmed_on": "2026-11-03"
+    }
+  ],
+  "allowed_categories": [
+    "Transportation",
+    "Health and Fitness",
+    "Car Maintenance",
+    "Subscriptions",
+    "Donations",
+    "Food",
+    "Misc",
+    "Racing",
+    "Compass",
+    "Weed"
   ]
 }
