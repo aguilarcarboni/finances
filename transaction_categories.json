@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "updated_on": "2026-11-03",
+  "timezone": "America/Costa_Rica",
+  "notes": [
+    "Only user-confirmed assignments belong here. Unlisted transactions remain unclassified.",
+    "Match transaction-specific assignments by original date, exact merchant, original currency and amount; a transaction-specific assignment takes precedence over merchant inference."
+  ],
+  "categories_without_allowance": [
+    "Food",
+    "Misc"
+  ],
+  "transactions": [
+    {
+      "date": "2026-10-15",
+      "merchant": "GASOLINERA BARRANTES Y",
+      "currency": "CRC",
+      "amount": "23945.00",
+      "category": "Transportation",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-10-27",
+      "merchant": "DELTA PALERMO",
+      "currency": "CRC",
+      "amount": "10000.00",
+      "category": "Transportation",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-11-01",
+      "merchant": "FARMAPOLIS",
+      "currency": "CRC",
+      "amount": "8000.00",
+      "category": "Misc",
+      "confirmed_on": "2026-11-03"
+    },
+    {
+      "date": "2026-11-01",
+      "merchant": "FRESH MARKET ALTOS DE",
+      "currency": "CRC",
+      "amount": "5055.00",
+      "category": "Food",
+      "confirmed_on": "2026-11-03"
+    }
+  ]
+}
