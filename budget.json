@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_on": "2026-10-26",
+  "updated_on": "2026-11-03",
   "timezone": "America/Costa_Rica",
   "planning_currency": "USD",
   "report_currency": "CRC",
@@ -91,9 +91,12 @@
     {
       "id": "first-admin-compass",
       "period": "first",
-      "category": "Subscriptions",
-      "name": "Admin Compass",
-      "amount": "5.00"
+      "category": "Compass",
+      "name": "Compass",
+      "amount": "13.33",
+      "amount_crc": "6000.00",
+      "recurrence": "Monthly",
+      "confirmed_on": "2026-11-03"
     },
     {
       "id": "second-gas",
@@ -233,7 +236,8 @@
   "actuals_policy": {
     "transaction_source": "Personal Gmail BAC label, read-only through the Finances plugin",
     "confirmed_context_source": "Dated user confirmations retained in the invoking automation memory or current conversation",
-    "note": "No actual payments or balances are established by this file. The old zero paid/saved defaults and randomized savings transactions are not actuals. Unknown amounts remain unknown; confirmed zero balances retain their dated evidence."
+    "note": "No actual payments or balances are established by this file. The old zero paid/saved defaults and randomized savings transactions are not actuals. Unknown amounts remain unknown; confirmed zero balances retain their dated evidence.",
+    "category_assignments_source": "transaction_categories.json: apply confirmed transaction assignments and merchant_rules before inference; use only allowed_categories."
   },
   "planning_exchange_rate_evidence": {
     "as_of": "2026-10-26",
