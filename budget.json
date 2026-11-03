@@ -142,7 +142,10 @@
       "period": "second",
       "category": "Donations",
       "name": "Vision Mundial",
-      "amount": "10.00"
+      "amount": "11.11",
+      "amount_crc": "5000.00",
+      "recurrence": "Monthly",
+      "confirmed_on": "2026-11-03"
     }
   ],
   "rolling_expenses": [
