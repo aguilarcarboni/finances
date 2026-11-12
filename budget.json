@@ -51,7 +51,9 @@
       "amount": "166.65",
       "amount_crc": "75000.00",
       "confirmed_on": "2026-11-12",
-      "note": "Confirmed per pay period; not proof of payment."
+      "note": "Confirmed per pay period; not proof of payment.",
+      "payment_evidence_policy": "assume_paid_in_applicable_period_unless_contrary_evidence",
+      "payment_evidence_confirmed_on": "2026-11-12"
     },
     {
       "id": "first-seguro-bac",
@@ -87,7 +89,9 @@
       "amount": "13.33",
       "amount_crc": "6000.00",
       "recurrence": "Monthly",
-      "confirmed_on": "2026-11-03"
+      "confirmed_on": "2026-11-03",
+      "payment_evidence_policy": "assume_paid_in_applicable_period_unless_contrary_evidence",
+      "payment_evidence_confirmed_on": "2026-11-12"
     },
     {
       "id": "second-gas",
@@ -116,7 +120,9 @@
       "amount": "166.65",
       "amount_crc": "75000.00",
       "confirmed_on": "2026-11-12",
-      "note": "Confirmed per pay period; not proof of payment."
+      "note": "Confirmed per pay period; not proof of payment.",
+      "payment_evidence_policy": "assume_paid_in_applicable_period_unless_contrary_evidence",
+      "payment_evidence_confirmed_on": "2026-11-12"
     },
     {
       "id": "second-iptv",
@@ -153,25 +159,27 @@
       "amount": "11.11",
       "amount_crc": "5000.00",
       "recurrence": "Monthly",
-      "confirmed_on": "2026-11-03"
+      "confirmed_on": "2026-11-03",
+      "payment_evidence_policy": "assume_paid_in_applicable_period_unless_contrary_evidence",
+      "payment_evidence_confirmed_on": "2026-11-12"
     },
     {
       "id": "first-credit-card-debt-repayment",
       "period": "first",
       "category": "Credit Card Repayment",
-      "name": "Card payment excluding budgeted gym",
-      "amount": "88.88",
-      "amount_crc": "40000.00",
-      "note": "PROVISIONAL only: allocation and amount require clarification; user says the Visa payment is for an extra 30000 CRC. Do not treat as confirmed or count twice."
+      "name": "Visa 4750 payment excluding gym",
+      "amount": "16.67",
+      "amount_crc": "7500.00",
+      "note": "Provisional split, not proof of payment; gym funding is a separate 30000 CRC row. Card repayments are cash flow, not additional purchase spending."
     },
     {
       "id": "second-credit-card-debt-repayment",
       "period": "second",
       "category": "Credit Card Repayment",
-      "name": "Card payment excluding budgeted gym",
-      "amount": "88.88",
-      "amount_crc": "40000.00",
-      "note": "PROVISIONAL only: allocation and amount require clarification; user says the Visa payment is for an extra 30000 CRC. Do not treat as confirmed or count twice."
+      "name": "Visa 4750 payment excluding gym",
+      "amount": "16.67",
+      "amount_crc": "7500.00",
+      "note": "Provisional split, not proof of payment; gym funding is a separate 30000 CRC row. Card repayments are cash flow, not additional purchase spending."
     },
     {
       "id": "first-gym-funding",
@@ -181,6 +189,24 @@
       "amount": "66.66",
       "amount_crc": "30000.00",
       "note": "Half of monthly CRC 60000 gym charge on Visa 4750, billed on the 26th."
+    },
+    {
+      "id": "first-amex-payment",
+      "period": "first",
+      "category": "Credit Card Repayment",
+      "name": "AMEX 5295 payment",
+      "amount": "72.22",
+      "amount_crc": "32500.00",
+      "note": "Provisional allocation, not proof of payment; do not add card repayments to purchase spending."
+    },
+    {
+      "id": "second-amex-payment",
+      "period": "second",
+      "category": "Credit Card Repayment",
+      "name": "AMEX 5295 payment",
+      "amount": "72.22",
+      "amount_crc": "32500.00",
+      "note": "Provisional allocation, not proof of payment; do not add card repayments to purchase spending."
     }
   ],
   "rolling_expenses": [
@@ -309,7 +335,8 @@
     "transaction_source": "Personal Gmail BAC label, read-only through the Finances plugin",
     "confirmed_context_source": "Dated user confirmations retained in the invoking automation memory or current conversation",
     "note": "No actual payments or balances are established by this file. The old zero paid/saved defaults and randomized savings transactions are not actuals. Unknown amounts remain unknown; confirmed zero balances retain their dated evidence. Card balances are dated user-confirmed snapshots; schedules and payment plans do not establish actual payments.",
-    "category_assignments_source": "transaction_categories.json: apply confirmed transaction assignments and merchant_rules before inference; use only allowed_categories."
+    "category_assignments_source": "transaction_categories.json: apply confirmed transaction assignments and merchant_rules before inference; use only allowed_categories.",
+    "compass_statement_note": "User confirmed four DEBITO COMPASS statement items totaling CRC 6820 are Compass; individual dates and amounts were not retained in available evidence. Do not invent dates or double-count them against the assumed 6000."
   },
   "planning_exchange_rate_evidence": {
     "as_of": "2026-10-26",
@@ -383,7 +410,7 @@
         "amount": "384213.57"
       }
     ],
-    "note": "DRAFT: user says the Visa payment is for an extra CRC 30000; whether per month or paycheck and how it relates to the total payment requires clarification. Count gym and other card purchases only once. Balances are dated snapshot.",
+    "note": "DRAFT: user says the Visa payment is for an extra CRC 30000; whether per month or paycheck and how it relates to the total payment requires clarification. Count gym and other card purchases only once. Balances are dated snapshot. Presentation per paycheck: 30000 gym funding, 7500 additional Visa payment, 32500 AMEX payment; this is the prior provisional 70000 total, not confirmed payments or a confirmed final split.",
     "gym_charge_schedule": {
       "amount": "60000.00",
       "currency": "CRC",
@@ -415,8 +442,17 @@
     "description": "Separate expenses account without a card, with payments and reimbursements handled from it. No account creation authorized or completed."
   },
   "reporting_preferences": {
-    "format": "Two separate tables, one for each half-month paycheck; list every category, each subscription and each debt separately; show known dates, and avoid future January changes unless requested.",
+    "format": "Two tables, one per half-month, with each active category, each subscription and debt, known dates, budget, Actual Spending, budgeted payment total, salary and planned remainder. Show monthly totals. Omit paused items. Show gym funding and Visa and AMEX repayments as separate rows; CASA ALTU notices go in gym row. Provisional allocations remain provisional.",
     "currency_note": "Salary USD 1400 monthly; SwipTV, Seguro BAC, RacingLine, Apple and iRacing are USD as confirmed. Clarify currency of remaining legacy allowances before changing nominal amounts.",
-    "salary_note": "User confirmed USD 1400 per month, planned as USD 700 in each half-month pay period."
+    "salary_note": "User confirmed USD 1400 per month, planned as USD 700 in each half-month pay period.",
+    "exchange_rate": "Use a freshly verified BAC Costa Rica compra rate for USD-to-CRC estimates; cite the dated source. Use venta when modeling CRC needed to buy USD. Preserve native CRC and transaction-specific settled amounts.",
+    "actual_spending": "Include BAC purchases and applicable assumed-paid car debt, Compass, Seguro BAC, RacingLine and Vision Mundial. Assume only once the applicable period has begun; label assumptions and avoid duplicates. Never add card repayment or gym funding on top of underlying purchases. Include BAC subtotal and exact coverage; report unresolved overlap.",
+    "no_allowance_categories": [
+      "Food",
+      "Misc",
+      "Racing",
+      "Weed"
+    ],
+    "misc_detail": "List every Misc and uncategorized transaction in reviewed periods, including confirmed Misc; preserve user-confirmed classifications."
   }
 }
