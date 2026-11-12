@@ -58,14 +58,18 @@
       "period": "first",
       "category": "Subscriptions",
       "name": "Seguro BAC",
-      "amount": "3.00"
+      "amount": "3.00",
+      "payment_evidence_policy": "assume_paid_each_period_unless_contrary_evidence",
+      "note": "User confirms statement SEGURO BELD CRC 1606.50 is this expense and asks it to be assumed paid; do not add the assumed amount again when a matching actual is present."
     },
     {
       "id": "first-racingline",
       "period": "first",
       "category": "Subscriptions",
       "name": "RacingLine",
-      "amount": "1.99"
+      "amount": "1.99",
+      "payment_evidence_policy": "assume_paid_each_period_unless_contrary_evidence",
+      "note": "Assumed paid at USD 1.99 per user; not independently bank-confirmed."
     },
     {
       "id": "first-iracing",
@@ -126,7 +130,20 @@
       "period": "second",
       "category": "Subscriptions",
       "name": "Apple One",
-      "amount": "27.00"
+      "amount": "26.94",
+      "components": [
+        {
+          "name": "Apple charge 1",
+          "amount": "16.95",
+          "currency": "USD"
+        },
+        {
+          "name": "Apple charge 2",
+          "amount": "9.99",
+          "currency": "USD"
+        }
+      ],
+      "confirmed_on": "2026-11-12"
     },
     {
       "id": "second-vision-mundial",
@@ -321,6 +338,20 @@
       ],
       "status": "future_planned",
       "note": "Not included in current expenses; add for periods from the effective date. Not proof of payment."
+    },
+    {
+      "id": "swiptv-annual",
+      "category": "Subscriptions",
+      "name": "SwipTV",
+      "amount": "3.99",
+      "currency": "USD",
+      "currency_status": "assumed_needs_confirmation",
+      "recurrence": "Yearly",
+      "month": 12,
+      "day": 11,
+      "first_known_due_date": "2026-12-11",
+      "status": "future_planned",
+      "note": "User said 3.99 every December 11; USD inferred from subscription context and needs confirmation. Do not charge monthly."
     }
   ],
   "credit_card_plan": {
@@ -383,6 +414,7 @@
     "description": "Separate expenses account without a card, with payments and reimbursements handled from it. No account creation authorized or completed."
   },
   "reporting_preferences": {
-    "format": "Two separate tables, one for each half-month paycheck; list every category, each subscription and each debt separately; show known dates, and avoid future January changes unless requested."
+    "format": "Two separate tables, one for each half-month paycheck; list every category, each subscription and each debt separately; show known dates, and avoid future January changes unless requested.",
+    "currency_note": "User says named non-USD amounts are colones; clarify whether salary and existing USD-denominated legacy allowances should be converted to fixed CRC before changing their canonical currencies."
   }
 }
