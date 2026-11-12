@@ -345,13 +345,14 @@
       "name": "SwipTV",
       "amount": "3.99",
       "currency": "USD",
-      "currency_status": "assumed_needs_confirmation",
+      "currency_status": "user_confirmed",
       "recurrence": "Yearly",
       "month": 12,
       "day": 11,
       "first_known_due_date": "2026-12-11",
       "status": "future_planned",
-      "note": "User said 3.99 every December 11; USD inferred from subscription context and needs confirmation. Do not charge monthly."
+      "note": "User confirms USD 3.99 every December 11; yearly, not monthly.",
+      "confirmed_on": "2026-11-12"
     }
   ],
   "credit_card_plan": {
@@ -415,6 +416,7 @@
   },
   "reporting_preferences": {
     "format": "Two separate tables, one for each half-month paycheck; list every category, each subscription and each debt separately; show known dates, and avoid future January changes unless requested.",
-    "currency_note": "User says named non-USD amounts are colones; clarify whether salary and existing USD-denominated legacy allowances should be converted to fixed CRC before changing their canonical currencies."
+    "currency_note": "Salary USD 1400 monthly; SwipTV, Seguro BAC, RacingLine, Apple and iRacing are USD as confirmed. Clarify currency of remaining legacy allowances before changing nominal amounts.",
+    "salary_note": "User confirmed USD 1400 per month, planned as USD 700 in each half-month pay period."
   }
 }
