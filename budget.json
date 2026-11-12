@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_on": "2026-11-03",
+  "updated_on": "2026-11-12",
   "timezone": "America/Costa_Rica",
   "planning_currency": "USD",
   "report_currency": "CRC",
@@ -29,22 +29,29 @@
       "id": "first-gas",
       "period": "first",
       "category": "Transportation",
-      "name": "Gas",
-      "amount": "70.00"
+      "name": "Transportation (bus, Uber, gas)",
+      "amount": "70.00",
+      "note": "Shared transportation allowance; bus and Uber currently, gas when applicable."
     },
     {
       "id": "first-fisioterapia",
       "period": "first",
       "category": "Health and Fitness",
       "name": "Fisioterapia",
-      "amount": "30.00"
+      "amount": "0.00",
+      "paused_amount": "30.00",
+      "status": "paused_by_user_2026-11-12",
+      "note": "Ignore physiotherapy for now, per user."
     },
     {
       "id": "first-car-debt",
       "period": "first",
       "category": "Car Maintenance",
       "name": "Car Debt",
-      "amount": "150.00"
+      "amount": "166.65",
+      "amount_crc": "75000.00",
+      "confirmed_on": "2026-11-12",
+      "note": "Confirmed per pay period; not proof of payment."
     },
     {
       "id": "first-seguro-bac",
@@ -54,13 +61,6 @@
       "amount": "3.00"
     },
     {
-      "id": "first-ea-play-ps",
-      "period": "first",
-      "category": "Subscriptions",
-      "name": "EA Play (PS)",
-      "amount": "5.99"
-    },
-    {
       "id": "first-racingline",
       "period": "first",
       "category": "Subscriptions",
@@ -68,25 +68,11 @@
       "amount": "1.99"
     },
     {
-      "id": "first-ps",
-      "period": "first",
-      "category": "Subscriptions",
-      "name": "PS+",
-      "amount": "10.99"
-    },
-    {
       "id": "first-iracing",
       "period": "first",
       "category": "Subscriptions",
       "name": "iRacing",
       "amount": "14.75"
-    },
-    {
-      "id": "first-chatgpt",
-      "period": "first",
-      "category": "Subscriptions",
-      "name": "ChatGPT",
-      "amount": "20.00"
     },
     {
       "id": "first-admin-compass",
@@ -102,26 +88,30 @@
       "id": "second-gas",
       "period": "second",
       "category": "Transportation",
-      "name": "Gas",
-      "amount": "70.00"
+      "name": "Transportation (bus, Uber, gas)",
+      "amount": "70.00",
+      "note": "Shared transportation allowance; bus and Uber currently, gas when applicable."
     },
     {
       "id": "second-smartfit",
       "period": "second",
       "category": "Health and Fitness",
-      "name": "SmartFit",
-      "amount": "133.32",
-      "amount_crc": "60000.00",
-      "payment_day": 26,
+      "name": "Gym funding (second paycheck)",
+      "amount": "66.66",
+      "amount_crc": "30000.00",
       "recurrence": "Monthly",
-      "confirmed_on": "2026-10-26"
+      "confirmed_on": "2026-10-26",
+      "note": "Half of monthly CRC 60000 gym charge on Visa 4750, billed on the 26th."
     },
     {
       "id": "second-car-debt",
       "period": "second",
       "category": "Car Maintenance",
       "name": "Car Debt",
-      "amount": "150.00"
+      "amount": "166.65",
+      "amount_crc": "75000.00",
+      "confirmed_on": "2026-11-12",
+      "note": "Confirmed per pay period; not proof of payment."
     },
     {
       "id": "second-iptv",
@@ -146,6 +136,33 @@
       "amount_crc": "5000.00",
       "recurrence": "Monthly",
       "confirmed_on": "2026-11-03"
+    },
+    {
+      "id": "first-credit-card-debt-repayment",
+      "period": "first",
+      "category": "Credit Card Repayment",
+      "name": "Card payment excluding budgeted gym",
+      "amount": "88.88",
+      "amount_crc": "40000.00",
+      "note": "PROVISIONAL only: allocation and amount require clarification; user says the Visa payment is for an extra 30000 CRC. Do not treat as confirmed or count twice."
+    },
+    {
+      "id": "second-credit-card-debt-repayment",
+      "period": "second",
+      "category": "Credit Card Repayment",
+      "name": "Card payment excluding budgeted gym",
+      "amount": "88.88",
+      "amount_crc": "40000.00",
+      "note": "PROVISIONAL only: allocation and amount require clarification; user says the Visa payment is for an extra 30000 CRC. Do not treat as confirmed or count twice."
+    },
+    {
+      "id": "first-gym-funding",
+      "period": "first",
+      "category": "Health and Fitness",
+      "name": "Gym funding (first paycheck)",
+      "amount": "66.66",
+      "amount_crc": "30000.00",
+      "note": "Half of monthly CRC 60000 gym charge on Visa 4750, billed on the 26th."
     }
   ],
   "rolling_expenses": [
@@ -153,71 +170,105 @@
       "id": "cut-hair",
       "category": "Health and Fitness",
       "name": "Cut Hair",
-      "contribution_per_period": "6.00",
+      "contribution_per_period": "0.00",
       "target_amount": "24.00",
       "due_date": "2026-11-15",
       "recurrence": "Every 2 months",
-      "due_date_status": "migrated_app_default_needs_review"
+      "due_date_status": "migrated_app_default_needs_review",
+      "paused_contribution_per_period": "6.00",
+      "contribution_status": "paused_by_user_2026-11-12",
+      "note": "Pay when needed rather than setting aside, per user 2026-11-12."
     },
     {
       "id": "limpieza-dental",
       "category": "Health and Fitness",
       "name": "Limpieza Dental",
-      "contribution_per_period": "4.00",
+      "contribution_per_period": "0.00",
       "target_amount": "40.00",
       "due_date": "2027-02-15",
       "recurrence": "Every 6 months",
-      "due_date_status": "migrated_app_default_needs_review"
+      "due_date_status": "user_confirmed",
+      "paused_contribution_per_period": "4.00",
+      "contribution_status": "paused_by_user_2026-11-12",
+      "due_date_confirmed_on": "2026-11-12"
     },
     {
       "id": "health-exams",
       "category": "Health and Fitness",
       "name": "Health Exams",
-      "contribution_per_period": "6.00",
+      "contribution_per_period": "0.00",
       "target_amount": "72.00",
-      "due_date": "2026-09-15",
+      "due_date": "2027-02-15",
       "recurrence": "Every 6 months",
-      "due_date_status": "migrated_app_default_needs_review"
+      "due_date_status": "user_confirmed",
+      "paused_contribution_per_period": "6.00",
+      "contribution_status": "paused_by_user_2026-11-12",
+      "due_date_confirmed_on": "2026-11-12"
     },
     {
       "id": "eye-exam",
       "category": "Health and Fitness",
       "name": "Eye Exam",
-      "contribution_per_period": "2.50",
+      "contribution_per_period": "0.00",
       "target_amount": "30.00",
-      "due_date": "2026-09-15",
+      "due_date": "2027-02-15",
       "recurrence": "Every 6 months",
-      "due_date_status": "migrated_app_default_needs_review"
+      "due_date_status": "user_confirmed",
+      "paused_contribution_per_period": "2.50",
+      "contribution_status": "paused_by_user_2026-11-12",
+      "due_date_confirmed_on": "2026-11-12"
     },
     {
       "id": "marchamo",
       "category": "Car Maintenance",
       "name": "Marchamo",
-      "contribution_per_period": "75.00",
+      "contribution_per_period": "0.00",
       "target_amount": "500.00",
       "due_date": "2026-12-01",
       "recurrence": "Yearly",
-      "due_date_status": "migrated_app_default_needs_review"
+      "due_date_status": "migrated_app_default_needs_review",
+      "paused_contribution_per_period": "75.00",
+      "contribution_status": "paused_by_user_2026-11-12",
+      "target_amount_crc": "250000.00",
+      "target_amount_crc_as_of": "2026-11-12",
+      "target_note": "User states CRC250000 for 2026; saved due date needs confirmation."
     },
     {
       "id": "car-service",
       "category": "Car Maintenance",
       "name": "Car Service",
-      "contribution_per_period": "23.33",
+      "contribution_per_period": "0.00",
       "target_amount": "280.00",
-      "due_date": "2027-09-01",
+      "due_date": "2027-03-01",
       "recurrence": "Every 6 months",
-      "due_date_status": "migrated_app_default_needs_review"
+      "due_date_status": "user_confirmed",
+      "paused_contribution_per_period": "23.33",
+      "contribution_status": "paused_by_user_2026-11-12",
+      "target_amount_crc": "60000.00",
+      "schedule_crc": [
+        {
+          "due_date": "2027-03-01",
+          "amount": "60000.00"
+        },
+        {
+          "due_date": "2027-09-01",
+          "amount": "130000.00"
+        }
+      ],
+      "schedule_confirmed_on": "2026-11-12"
     },
     {
       "id": "wash-car",
       "category": "Car Maintenance",
       "name": "Wash Car",
-      "contribution_per_period": "7.50",
+      "contribution_per_period": "0.00",
       "target_amount": "30.00",
       "due_date": "2026-10-15",
       "recurrence": "Every 2 months",
-      "due_date_status": "migrated_app_default_needs_review"
+      "due_date_status": "migrated_app_default_needs_review",
+      "paused_contribution_per_period": "7.50",
+      "contribution_status": "paused_by_user_2026-11-12",
+      "note": "Ignored while car unavailable, per user 2026-11-12."
     }
   ],
   "savings_policy": {
@@ -239,7 +290,7 @@
   "actuals_policy": {
     "transaction_source": "Personal Gmail BAC label, read-only through the Finances plugin",
     "confirmed_context_source": "Dated user confirmations retained in the invoking automation memory or current conversation",
-    "note": "No actual payments or balances are established by this file. The old zero paid/saved defaults and randomized savings transactions are not actuals. Unknown amounts remain unknown; confirmed zero balances retain their dated evidence.",
+    "note": "No actual payments or balances are established by this file. The old zero paid/saved defaults and randomized savings transactions are not actuals. Unknown amounts remain unknown; confirmed zero balances retain their dated evidence. Card balances are dated user-confirmed snapshots; schedules and payment plans do not establish actual payments.",
     "category_assignments_source": "transaction_categories.json: apply confirmed transaction assignments and merchant_rules before inference; use only allowed_categories."
   },
   "planning_exchange_rate_evidence": {
@@ -248,5 +299,89 @@
     "source_url": "https://www.bgeneralcr.com/historico/",
     "reference_buy": "450.04",
     "reference_sell": "456.32"
+  },
+  "rolling_contribution_policy": {
+    "status": "paused",
+    "confirmed_on": "2026-11-12",
+    "note": "Original contributions remain paused; user prefers pay hair when needed, ignore car wash while car unavailable, and is considering saving for larger targets. Funding schedule not yet approved."
+  },
+  "scheduled_changes": [
+    {
+      "id": "insurance-deductible",
+      "effective_on": "2027-01-01",
+      "confirmed_on": "2026-11-12",
+      "category": "Car Maintenance",
+      "name": "Insurance deductible",
+      "currency": "CRC",
+      "amount_per_period": "50000.00",
+      "periods": [
+        "first",
+        "second"
+      ],
+      "status": "future_planned",
+      "note": "Not included in current expenses; add for periods from the effective date. Not proof of payment."
+    }
+  ],
+  "credit_card_plan": {
+    "currency": "CRC",
+    "confirmed_on": "2026-11-12",
+    "monthly_payment": "140000.00",
+    "gym_included_assumption": true,
+    "gym_amount_per_month": "60000.00",
+    "split_status": "unconfirmed_user_reports_30000_extra_on_visa_needs_period_and_allocation",
+    "monthly_proposed_payments": [
+      {
+        "card": "Visa 4750",
+        "amount": "75000.00"
+      },
+      {
+        "card": "AMEX 5295",
+        "amount": "65000.00"
+      }
+    ],
+    "balances_as_of": "2026-11-12",
+    "balances": [
+      {
+        "card": "Visa 4750",
+        "amount": "95230.43"
+      },
+      {
+        "card": "AMEX 5295",
+        "amount": "384213.57"
+      }
+    ],
+    "note": "DRAFT: user says the Visa payment is for an extra CRC 30000; whether per month or paycheck and how it relates to the total payment requires clarification. Count gym and other card purchases only once. Balances are dated snapshot.",
+    "gym_charge_schedule": {
+      "amount": "60000.00",
+      "currency": "CRC",
+      "payment_day": 26,
+      "recurrence": "Monthly",
+      "evidence": "saved schedule confirmed 2026-10-26; card confirmed 2026-11-12; not evidence of payment"
+    },
+    "gym_funding_per_paycheck_crc": "30000.00"
+  },
+  "cancelled_subscriptions": [
+    {
+      "id": "first-chatgpt",
+      "confirmed_on": "2026-11-12",
+      "status": "cancelled_by_user"
+    },
+    {
+      "id": "first-ea-play-ps",
+      "confirmed_on": "2026-11-12",
+      "status": "cancelled_by_user"
+    },
+    {
+      "id": "first-ps",
+      "confirmed_on": "2026-11-12",
+      "status": "cancelled_by_user"
+    }
+  ],
+  "future_expenses_account": {
+    "status": "idea_for_when_recurring_targets_resume",
+    "description": "Separate expenses account without a card, with payments and reimbursements handled from it. No account creation authorized or completed."
+  },
+  "reporting_preferences": {
+    "format": "Two separate tables, one for each half-month paycheck; list every category, each subscription and each debt separately; show known dates, and avoid future January changes unless requested."
   }
 }

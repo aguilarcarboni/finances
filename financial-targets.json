@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "updated_on": "2026-11-12",
+  "timezone": "America/Costa_Rica",
+  "currency": "CRC",
+  "priority": "Restore financial stability while keeping important future costs visible.",
+  "planning_policy": {
+    "small_costs": "Pay for hair when needed; do not require a dedicated reserve.",
+    "large_costs": "Consider one shared savings pot for larger costs; contribution amounts are not yet confirmed.",
+    "actual_savings": "Unknown. Do not treat planned contributions as funded balances.",
+    "card_debt": "Existing card debt repayment remains a priority; exact payment split is unconfirmed."
+  },
+  "conversion_evidence": {
+    "reference_date": "2026-11-12",
+    "basis": "BCCR USD compra reference; estimates only, not bank settlement",
+    "crc_per_usd": "445.25",
+    "source_url": "https://www.bgeneralcr.com/historico/"
+  },
+  "targets": [
+    {
+      "id": "haircut",
+      "name": "Haircut",
+      "amount_crc": "10686.00",
+      "amount_status": "estimate_from_existing_usd_plan",
+      "original_amount_usd": "24.00",
+      "payment_approach": "pay_when_needed",
+      "due_date": null,
+      "note": "Previous November 15 date was an unverified migrated default."
+    },
+    {
+      "id": "car-wash",
+      "name": "Car wash",
+      "status": "paused_while_car_unavailable",
+      "amount_crc": "13357.50",
+      "amount_status": "estimate_from_existing_usd_plan",
+      "original_amount_usd": "30.00",
+      "due_date": null
+    },
+    {
+      "id": "marchamo-2026",
+      "name": "Marchamo",
+      "amount_crc": "250000.00",
+      "amount_status": "user_stated_for_2026",
+      "due_date": "2026-12-01",
+      "due_date_status": "unverified_migrated_default",
+      "saved_amount_crc": null
+    },
+    {
+      "id": "dental-cleaning-2027",
+      "name": "Dental cleaning",
+      "amount_crc": "17810.00",
+      "amount_status": "estimate_from_existing_usd_plan",
+      "original_amount_usd": "40.00",
+      "due_date": "2027-02-15",
+      "due_date_status": "user_selected",
+      "saved_amount_crc": null
+    },
+    {
+      "id": "health-exams-2027",
+      "name": "Health exams",
+      "amount_crc": "32058.00",
+      "amount_status": "estimate_from_existing_usd_plan",
+      "original_amount_usd": "72.00",
+      "due_date": "2027-02-15",
+      "due_date_status": "user_selected",
+      "saved_amount_crc": null
+    },
+    {
+      "id": "eye-exam-2027",
+      "name": "Eye exam",
+      "amount_crc": "13357.50",
+      "amount_status": "estimate_from_existing_usd_plan",
+      "original_amount_usd": "30.00",
+      "due_date": "2027-02-15",
+      "due_date_status": "user_selected",
+      "saved_amount_crc": null
+    },
+    {
+      "id": "car-service-march-2027",
+      "name": "Car service",
+      "amount_crc": "60000.00",
+      "amount_status": "user_stated",
+      "due_date": "2027-03-01",
+      "due_date_status": "user_selected",
+      "saved_amount_crc": null
+    },
+    {
+      "id": "car-service-september-2027",
+      "name": "Car service",
+      "amount_crc": "130000.00",
+      "amount_status": "user_stated",
+      "due_date": "2027-09-01",
+      "due_date_status": "user_selected",
+      "saved_amount_crc": null
+    }
+  ]
+}
