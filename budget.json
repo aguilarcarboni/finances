@@ -69,10 +69,11 @@
     },
     {
       "id": "first-iracing",
-      "period": "first",
+      "period": "second",
       "category": "Subscriptions",
       "name": "iRacing",
-      "amount": "14.75"
+      "amount": "14.75",
+      "note": "Budgeted in the second half of the month per user instruction; exact charge date unconfirmed."
     },
     {
       "id": "first-admin-compass",
