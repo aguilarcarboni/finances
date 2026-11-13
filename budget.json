@@ -237,32 +237,6 @@
       "due_date_confirmed_on": "2026-11-12"
     },
     {
-      "id": "health-exams",
-      "category": "Health and Fitness",
-      "name": "Health Exams",
-      "contribution_per_period": "0.00",
-      "target_amount": "72.00",
-      "due_date": "2027-04-15",
-      "recurrence": "Every 6 months",
-      "due_date_status": "user_confirmed",
-      "paused_contribution_per_period": "6.00",
-      "contribution_status": "paused_by_user_2026-11-12",
-      "due_date_confirmed_on": "2026-11-12"
-    },
-    {
-      "id": "eye-exam",
-      "category": "Health and Fitness",
-      "name": "Eye Exam",
-      "contribution_per_period": "0.00",
-      "target_amount": "30.00",
-      "due_date": "2027-03-15",
-      "recurrence": "Every 6 months",
-      "due_date_status": "user_confirmed",
-      "paused_contribution_per_period": "2.50",
-      "contribution_status": "paused_by_user_2026-11-12",
-      "due_date_confirmed_on": "2026-11-12"
-    },
-    {
       "id": "marchamo",
       "category": "Car Maintenance",
       "name": "Marchamo",
