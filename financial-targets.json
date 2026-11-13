@@ -61,7 +61,7 @@
       "amount_crc": "32058.00",
       "amount_status": "estimate_from_existing_usd_plan",
       "original_amount_usd": "72.00",
-      "due_date": "2027-02-15",
+      "due_date": "2027-04-15",
       "due_date_status": "user_selected",
       "saved_amount_crc": null
     },
@@ -71,7 +71,7 @@
       "amount_crc": "13357.50",
       "amount_status": "estimate_from_existing_usd_plan",
       "original_amount_usd": "30.00",
-      "due_date": "2027-02-15",
+      "due_date": "2027-03-15",
       "due_date_status": "user_selected",
       "saved_amount_crc": null
     },
