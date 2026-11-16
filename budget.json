@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_on": "2026-11-12",
+  "updated_on": "2026-11-16",
   "timezone": "America/Costa_Rica",
   "planning_currency": "USD",
   "report_currency": "CRC",
@@ -168,18 +168,20 @@
       "period": "first",
       "category": "Credit Card Repayment",
       "name": "Visa 4750 payment excluding gym",
-      "amount": "16.67",
-      "amount_crc": "7500.00",
-      "note": "Provisional split, not proof of payment; gym funding is a separate 30000 CRC row. Card repayments are cash flow, not additional purchase spending."
+      "amount": "22.22",
+      "amount_crc": "10000.00",
+      "note": "Debt repayment per paycheck, separate from gym funding; planned, not proof of payment. Do not add card repayments to purchase spending.",
+      "confirmed_on": "2026-11-16"
     },
     {
       "id": "second-credit-card-debt-repayment",
       "period": "second",
       "category": "Credit Card Repayment",
       "name": "Visa 4750 payment excluding gym",
-      "amount": "16.67",
-      "amount_crc": "7500.00",
-      "note": "Provisional split, not proof of payment; gym funding is a separate 30000 CRC row. Card repayments are cash flow, not additional purchase spending."
+      "amount": "22.22",
+      "amount_crc": "10000.00",
+      "note": "Debt repayment per paycheck, separate from gym funding; planned, not proof of payment. Do not add card repayments to purchase spending.",
+      "confirmed_on": "2026-11-16"
     },
     {
       "id": "first-gym-funding",
@@ -195,18 +197,20 @@
       "period": "first",
       "category": "Credit Card Repayment",
       "name": "AMEX 5295 payment",
-      "amount": "72.22",
-      "amount_crc": "32500.00",
-      "note": "Provisional allocation, not proof of payment; do not add card repayments to purchase spending."
+      "amount": "88.88",
+      "amount_crc": "40000.00",
+      "note": "Debt repayment per paycheck; planned, not proof of payment. Do not add card repayments to purchase spending.",
+      "confirmed_on": "2026-11-16"
     },
     {
       "id": "second-amex-payment",
       "period": "second",
       "category": "Credit Card Repayment",
       "name": "AMEX 5295 payment",
-      "amount": "72.22",
-      "amount_crc": "32500.00",
-      "note": "Provisional allocation, not proof of payment; do not add card repayments to purchase spending."
+      "amount": "88.88",
+      "amount_crc": "40000.00",
+      "note": "Debt repayment per paycheck; planned, not proof of payment. Do not add card repayments to purchase spending.",
+      "confirmed_on": "2026-11-16"
     }
   ],
   "rolling_expenses": [
@@ -358,33 +362,33 @@
   ],
   "credit_card_plan": {
     "currency": "CRC",
-    "confirmed_on": "2026-11-12",
-    "monthly_payment": "140000.00",
+    "confirmed_on": "2026-11-16",
+    "monthly_payment": "160000.00",
     "gym_included_assumption": true,
     "gym_amount_per_month": "60000.00",
-    "split_status": "unconfirmed_user_reports_30000_extra_on_visa_needs_period_and_allocation",
+    "split_status": "confirmed_per_paycheck_2026-11-16",
     "monthly_proposed_payments": [
       {
         "card": "Visa 4750",
-        "amount": "75000.00"
+        "amount": "80000.00"
       },
       {
         "card": "AMEX 5295",
-        "amount": "65000.00"
+        "amount": "80000.00"
       }
     ],
-    "balances_as_of": "2026-11-12",
+    "balances_as_of": "2026-11-16",
     "balances": [
       {
         "card": "Visa 4750",
-        "amount": "95230.43"
+        "amount": "87730.43"
       },
       {
         "card": "AMEX 5295",
-        "amount": "384213.57"
+        "amount": "371263.34"
       }
     ],
-    "note": "DRAFT: user says the Visa payment is for an extra CRC 30000; whether per month or paycheck and how it relates to the total payment requires clarification. Count gym and other card purchases only once. Balances are dated snapshot. Presentation per paycheck: 30000 gym funding, 7500 additional Visa payment, 32500 AMEX payment; this is the prior provisional 70000 total, not confirmed payments or a confirmed final split.",
+    "note": "Per paycheck: CRC 30000 gym funding, CRC 10000 Visa debt repayment, and CRC 40000 AMEX debt repayment. Starting with the second half of November, nine debt payments through March total CRC 450000; the pictured balances total CRC 458993.77, leaving CRC 8993.77 before interest, fees, new purchases, or subsequent payments, assuming excess Visa debt allocation is redirected to AMEX. Review and fund the shortfall for the March goal. Gym funding is separate from existing debt; avoid double-counting card purchases. Plans are not proof of payment.",
     "gym_charge_schedule": {
       "amount": "60000.00",
       "currency": "CRC",
@@ -392,7 +396,8 @@
       "recurrence": "Monthly",
       "evidence": "saved schedule confirmed 2026-10-26; card confirmed 2026-11-12; not evidence of payment"
     },
-    "gym_funding_per_paycheck_crc": "30000.00"
+    "gym_funding_per_paycheck_crc": "30000.00",
+    "balances_evidence": "User-provided card screenshot shared 2026-11-16; screenshot capture time not established."
   },
   "cancelled_subscriptions": [
     {
@@ -416,7 +421,7 @@
     "description": "Separate expenses account without a card, with payments and reimbursements handled from it. No account creation authorized or completed."
   },
   "reporting_preferences": {
-    "format": "Two tables, one per half-month, with each active category, each subscription and debt, known dates, budget, Actual Spending, budgeted payment total, salary and planned remainder. Show monthly totals. Omit paused items. Show gym funding and Visa and AMEX repayments as separate rows; CASA ALTU notices go in gym row. Provisional allocations remain provisional.",
+    "format": "Two tables, one per half-month, with each active category, each subscription and debt, known dates, budget, Actual Spending, budgeted payment total, salary and planned remainder. Show monthly totals. Omit paused items. Show gym funding and Visa and AMEX repayments as separate rows; CASA ALTU notices go in gym row. Card repayment allocations are confirmed plans, not proof of payment.",
     "currency_note": "Salary USD 1400 monthly; SwipTV, Seguro BAC, RacingLine, Apple and iRacing are USD as confirmed. Clarify currency of remaining legacy allowances before changing nominal amounts.",
     "salary_note": "User confirmed USD 1400 per month, planned as USD 700 in each half-month pay period.",
     "exchange_rate": "Use a freshly verified BAC Costa Rica compra rate for USD-to-CRC estimates; cite the dated source. Use venta when modeling CRC needed to buy USD. Preserve native CRC and transaction-specific settled amounts.",

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_on": "2026-11-12",
+  "updated_on": "2026-11-16",
   "timezone": "America/Costa_Rica",
   "currency": "CRC",
   "priority": "Restore financial stability while keeping important future costs visible.",
@@ -8,7 +8,7 @@
     "small_costs": "Pay for hair when needed; do not require a dedicated reserve.",
     "large_costs": "Consider one shared savings pot for larger costs; contribution amounts are not yet confirmed.",
     "actual_savings": "Unknown. Do not treat planned contributions as funded balances.",
-    "card_debt": "Existing card debt repayment remains a priority; exact payment split is unconfirmed."
+    "card_debt": "Pay CRC 40000 toward AMEX and CRC 10000 toward Visa per paycheck, separate from CRC 30000 gym funding. March 2027 payoff goal requires at least CRC 8993.77 extra beyond nine planned payments against the pictured balances, before interest, fees, new purchases, or subsequent payments."
   },
   "conversion_evidence": {
     "reference_date": "2026-11-12",
