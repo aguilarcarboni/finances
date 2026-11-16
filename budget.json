@@ -70,16 +70,11 @@
       "category": "Subscriptions",
       "name": "RacingLine",
       "amount": "1.99",
-      "payment_evidence_policy": "assume_paid_each_period_unless_contrary_evidence",
-      "note": "Assumed paid at USD 1.99 per user; not independently bank-confirmed."
-    },
-    {
-      "id": "first-iracing",
-      "period": "second",
-      "category": "Subscriptions",
-      "name": "iRacing",
-      "amount": "14.75",
-      "note": "Budgeted in the second half of the month per user instruction; exact charge date unconfirmed."
+      "payment_evidence_policy": "assume_paid_in_applicable_period_unless_contrary_evidence",
+      "note": "Once monthly on the 4th; assumed paid in the first period unless contrary evidence. Not independently bank-confirmed.",
+      "payment_day": 4,
+      "recurrence": "Monthly",
+      "confirmed_on": "2026-11-16"
     },
     {
       "id": "first-admin-compass",
@@ -92,6 +87,16 @@
       "confirmed_on": "2026-11-03",
       "payment_evidence_policy": "assume_paid_in_applicable_period_unless_contrary_evidence",
       "payment_evidence_confirmed_on": "2026-11-12"
+    },
+    {
+      "id": "second-seguro-bac",
+      "period": "second",
+      "category": "Subscriptions",
+      "name": "Seguro BAC",
+      "amount": "3.00",
+      "payment_evidence_policy": "assume_paid_in_applicable_period_unless_contrary_evidence",
+      "confirmed_on": "2026-11-16",
+      "note": "Budgeted and assumed paid in this period per user; match any actual notice or statement before adding an assumption."
     },
     {
       "id": "second-gas",
@@ -414,6 +419,12 @@
       "id": "first-ps",
       "confirmed_on": "2026-11-12",
       "status": "cancelled_by_user"
+    },
+    {
+      "id": "first-iracing",
+      "confirmed_on": "2026-11-16",
+      "status": "stopped_by_user",
+      "note": "User stopped paying iRacing; previously observed USD1 charge remains an actual transaction."
     }
   ],
   "future_expenses_account": {
