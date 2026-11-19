@@ -441,7 +441,7 @@
     "description": "Separate expenses account without a card, with payments and reimbursements handled from it. No account creation authorized or completed."
   },
   "reporting_preferences": {
-    "format": "Two tables, one per half-month, with each active category, each subscription and debt, known dates, budget, Actual Spending, budgeted payment total, salary and planned remainder. Show monthly totals. Omit paused items. Show gym funding and Visa and AMEX repayments as separate rows; CASA ALTU notices go in gym row. Card repayment allocations are confirmed plans, not proof of payment.",
+    "format": "Two paycheck tables, one per half-month, each with Budget and Actual Spending columns, every active category, each subscription and debt, known dates, budgeted payment total, salary and planned remainder. Show monthly totals, then ONE itemized proposed recurring-contributions section at the end covering both paychecks. Do not repeat identical contribution tables below each paycheck. Omit paused items. Show gym funding and Visa and AMEX repayments separately; CASA ALTU notices go in the gym row. Card repayment allocations are confirmed plans, not proof of payment.",
     "currency_note": "Salary USD 1400 monthly; SwipTV, Seguro BAC, RacingLine, Apple and iRacing are USD as confirmed. Clarify currency of remaining legacy allowances before changing nominal amounts.",
     "salary_note": "User confirmed USD 1400 per month, planned as USD 700 in each half-month pay period.",
     "exchange_rate": "Use a freshly verified BAC Costa Rica compra rate for USD-to-CRC estimates; cite the dated source. Use venta when modeling CRC needed to buy USD. Preserve native CRC and transaction-specific settled amounts.",
@@ -450,8 +450,10 @@
       "Misc"
     ],
     "misc_detail": "List every Misc and uncategorized transaction in reviewed periods, including confirmed Misc; preserve user-confirmed classifications.",
-    "future_targets": "Keep future targets outside the recurring budget and omit them from the budget presentation until the user requests a funding decision.",
+    "future_targets": "Keep future target contributions outside the active budget. Show their illustrative contributions only once at the end in the separate proposal section; they are not approved or funded contributions.",
     "scheduled_changes": "Apply scheduled_changes on or after each effective_on date. Car repairs add CRC 50000 to each half-month from December 1, 2026. SwipTV adds USD 3.99 once monthly in the first half from December 2026 onward. December and January use the same recurring model; do not add either change twice.",
-    "budget_category_visibility": "Show Misc as Not budgeted in each half-month. Omit Food, Racing and Weed from budget tables per user confirmation November 19, 2026. Historical transaction classifications remain valid; this is a budget presentation change, not a reclassification or deletion of spending."
+    "budget_category_visibility": "Show Misc as Not budgeted in each half-month. Omit Food, Racing and Weed from budget tables per user confirmation November 19, 2026. Historical transaction classifications remain valid; this is a budget presentation change, not a reclassification or deletion of spending.",
+    "actual_spending_column": "Always include Actual Spending beside Budget. For future-period forecasts show Not incurred yet, never zero or historical spending from another month. For current or elapsed periods use dated verified transaction coverage and label assumptions and gaps.",
+    "proposed_recurring_contributions": "Show ONE itemized section at the end with each future recurring cost, target date and amount, assumed remaining funding paychecks, and proposed contribution per paycheck. Identical contributions apply to both paychecks; list them once. State start date, funding-day assumptions, and any illustrative saved-balance assumption. Keep proposals outside budget totals and planned remainder until explicitly activated. Haircuts remain pay-when-needed and car wash remains paused."
   }
 }
