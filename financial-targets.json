@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_on": "2026-11-16",
+  "updated_on": "2026-11-19",
   "timezone": "America/Costa_Rica",
   "currency": "CRC",
   "priority": "Restore financial stability while keeping important future costs visible.",
@@ -8,7 +8,9 @@
     "small_costs": "Pay for hair when needed; do not require a dedicated reserve.",
     "large_costs": "Consider one shared savings pot for larger costs; contribution amounts are not yet confirmed.",
     "actual_savings": "Unknown. Do not treat planned contributions as funded balances.",
-    "card_debt": "Pay CRC 40000 toward AMEX and CRC 10000 toward Visa per paycheck, separate from CRC 30000 gym funding. March 2027 payoff goal requires at least CRC 8993.77 extra beyond nine planned payments against the pictured balances, before interest, fees, new purchases, or subsequent payments."
+    "card_debt": "User-confirmed card debt CRC 450000 as of November 19, 2026. From December the recurring model allocates CRC 40000 AMEX and CRC 10000 Visa debt repayment each paycheck, separate from CRC 30000 gym funding. Nine installments repay principal before interest, fees, and new charges. Prior CRC 8993.77 shortfall scenario is superseded; no exact payoff date is established.",
+    "car_repairs": "User-confirmed repair debt CRC 300000 as of November 19, 2026. Allocate CRC 50000 each paycheck starting December 1, 2026, separate from existing car payment CRC 75000 and card debt repayment CRC 50000 per paycheck; six installments before any additional costs. No actual payments established.",
+    "future_targets": "Keep future targets outside the recurring budget until the user decides how to fund them; retain target records without adding contributions."
   },
   "conversion_evidence": {
     "reference_date": "2026-11-12",
@@ -41,9 +43,11 @@
       "name": "Marchamo",
       "amount_crc": "250000.00",
       "amount_status": "user_stated_for_2026",
-      "due_date": "2026-12-01",
-      "due_date_status": "unverified_migrated_default",
-      "saved_amount_crc": null
+      "due_date": "2027-12-01",
+      "due_date_status": "user_selected",
+      "saved_amount_crc": null,
+      "confirmed_on": "2026-11-19",
+      "note": "User corrected the date to December 1, 2027. Legacy ID and prior CRC 250000 estimate retained; excluded from recurring budget pending a funding decision."
     },
     {
       "id": "dental-cleaning-2027",
