@@ -10,7 +10,7 @@
     "actual_savings": "Unknown. Do not treat planned contributions as funded balances.",
     "card_debt": "User-confirmed card debt CRC 450000 as of November 19, 2026. From December the recurring model allocates CRC 40000 AMEX and CRC 10000 Visa debt repayment each paycheck, separate from CRC 30000 gym funding. Nine installments repay principal before interest, fees, and new charges. Prior CRC 8993.77 shortfall scenario is superseded; no exact payoff date is established.",
     "car_repairs": "User-confirmed repair debt CRC 300000 as of November 19, 2026. Allocate CRC 50000 each paycheck starting December 1, 2026, separate from existing car payment CRC 75000 and card debt repayment CRC 50000 per paycheck; six installments before any additional costs. No actual payments established.",
-    "future_targets": "Keep future targets outside the recurring budget until the user decides how to fund them; retain target records without adding contributions."
+    "future_targets": "Keep future target contributions outside the active budget. Show their itemized proposal once at the end after both paycheck tables and monthly totals; do not activate contributions until the user explicitly decides to fund them."
   },
   "conversion_evidence": {
     "reference_date": "2026-11-12",
@@ -97,5 +97,77 @@
       "due_date_status": "user_selected",
       "saved_amount_crc": null
     }
-  ]
+  ],
+  "proposed_recurring_contributions": {
+    "status": "illustrative_not_activated",
+    "calculated_on": "2026-11-19",
+    "starting_on": "2026-12-01",
+    "funding_day_assumptions": [
+      1,
+      16
+    ],
+    "includes_due_date_funding": true,
+    "saved_balance_assumption_crc": "0.00",
+    "saved_balance_evidence": "Unknown actual funded balances; zero is only an illustration, not a confirmed balance.",
+    "conversion_evidence": {
+      "reference_date": "2026-11-19",
+      "crc_per_usd": "437.00",
+      "basis": "BAC compra reported by ExchangeCR; estimates, not settlements",
+      "source_url": "https://exchangecr.com/es/tipo-de-cambio/bac"
+    },
+    "formula": "(target minus illustrative saved balance) / remaining assumed funding paychecks, rounded up to CRC 0.01",
+    "rows": [
+      {
+        "target_id": "marchamo-2026",
+        "name": "Marchamo",
+        "due_date": "2027-12-01",
+        "target_crc": "250000.00",
+        "assumed_funding_paychecks": 25,
+        "contribution_per_paycheck_crc": "10000.00"
+      },
+      {
+        "target_id": "dental-cleaning-2027",
+        "name": "Dental cleaning",
+        "due_date": "2027-02-15",
+        "target_crc": "17480.00",
+        "assumed_funding_paychecks": 5,
+        "contribution_per_paycheck_crc": "3496.00"
+      },
+      {
+        "target_id": "health-exams-2027",
+        "name": "Health exams",
+        "due_date": "2027-04-15",
+        "target_crc": "31464.00",
+        "assumed_funding_paychecks": 9,
+        "contribution_per_paycheck_crc": "3496.00"
+      },
+      {
+        "target_id": "eye-exam-2027",
+        "name": "Eye exam",
+        "due_date": "2027-03-15",
+        "target_crc": "13110.00",
+        "assumed_funding_paychecks": 7,
+        "contribution_per_paycheck_crc": "1872.86"
+      },
+      {
+        "target_id": "car-service-march-2027",
+        "name": "Car service",
+        "due_date": "2027-03-01",
+        "target_crc": "60000.00",
+        "assumed_funding_paychecks": 7,
+        "contribution_per_paycheck_crc": "8571.43"
+      },
+      {
+        "target_id": "car-service-september-2027",
+        "name": "Car service",
+        "due_date": "2027-09-01",
+        "target_crc": "130000.00",
+        "assumed_funding_paychecks": 19,
+        "contribution_per_paycheck_crc": "6842.11"
+      }
+    ],
+    "total_per_paycheck_crc": "34278.40",
+    "budget_impact": "None. Keep active contributions paused and do not subtract proposals from planned remainder. Haircut remains pay-when-needed; car wash remains paused.",
+    "display": "One itemized section at the end; the contribution_per_paycheck_crc amount applies equally to both paychecks. Do not repeat the section below each paycheck."
+  }
 }
