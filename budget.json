@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_on": "2026-11-16",
+  "updated_on": "2026-11-19",
   "timezone": "America/Costa_Rica",
   "planning_currency": "USD",
   "report_currency": "CRC",
@@ -251,14 +251,15 @@
       "name": "Marchamo",
       "contribution_per_period": "0.00",
       "target_amount": "500.00",
-      "due_date": "2026-12-01",
+      "due_date": "2027-12-01",
       "recurrence": "Yearly",
-      "due_date_status": "migrated_app_default_needs_review",
+      "due_date_status": "user_confirmed",
       "paused_contribution_per_period": "75.00",
       "contribution_status": "paused_by_user_2026-11-12",
       "target_amount_crc": "250000.00",
       "target_amount_crc_as_of": "2026-11-12",
-      "target_note": "User states CRC250000 for 2026; saved due date needs confirmation."
+      "target_note": "User corrected due date to December 1, 2027. Prior CRC 250000 estimate retained; target funding excluded from recurring budget pending user's decision.",
+      "due_date_confirmed_on": "2026-11-19"
     },
     {
       "id": "car-service",
@@ -330,16 +331,16 @@
   },
   "rolling_contribution_policy": {
     "status": "paused",
-    "confirmed_on": "2026-11-12",
-    "note": "Original contributions remain paused; user prefers pay hair when needed, ignore car wash while car unavailable, and is considering saving for larger targets. Funding schedule not yet approved."
+    "confirmed_on": "2026-11-19",
+    "note": "Keep Marchamo and other future targets outside the recurring budget until the user decides how to fund them. Contributions remain paused; no funded balances implied."
   },
   "scheduled_changes": [
     {
       "id": "insurance-deductible",
-      "effective_on": "2027-01-01",
-      "confirmed_on": "2026-11-12",
+      "effective_on": "2026-12-01",
+      "confirmed_on": "2026-11-19",
       "category": "Car Maintenance",
-      "name": "Insurance deductible",
+      "name": "Car repairs",
       "currency": "CRC",
       "amount_per_period": "50000.00",
       "periods": [
@@ -347,7 +348,9 @@
         "second"
       ],
       "status": "future_planned",
-      "note": "Not included in current expenses; add for periods from the effective date. Not proof of payment."
+      "note": "User-confirmed repair debt CRC 300000, repaid at CRC 50000 each half-month starting December 1, 2026. The same recurring model continues in January and later months until repaid; no payments established by this plan. Separate from existing car debt CRC 75000 and card debt repayment CRC 50000 each paycheck.",
+      "outstanding_amount_crc": "300000.00",
+      "outstanding_as_of": "2026-11-19"
     },
     {
       "id": "swiptv-annual",
@@ -356,18 +359,19 @@
       "amount": "3.99",
       "currency": "USD",
       "currency_status": "user_confirmed",
-      "recurrence": "Yearly",
-      "month": 12,
-      "day": 11,
+      "recurrence": "Monthly",
       "first_known_due_date": "2026-12-11",
       "status": "future_planned",
-      "note": "User confirms USD 3.99 every December 11; yearly, not monthly.",
-      "confirmed_on": "2026-11-12"
+      "note": "User corrected SwipTV to USD 3.99 every month. Include once in the first-half budget from December 2026 onward. Retain the previously recorded 11th as the planning payment day; not proof of payment. Legacy ID retained for compatibility.",
+      "confirmed_on": "2026-11-19",
+      "effective_on": "2026-12-01",
+      "period": "first",
+      "payment_day": 11
     }
   ],
   "credit_card_plan": {
     "currency": "CRC",
-    "confirmed_on": "2026-11-16",
+    "confirmed_on": "2026-11-19",
     "monthly_payment": "160000.00",
     "gym_included_assumption": true,
     "gym_amount_per_month": "60000.00",
@@ -393,7 +397,7 @@
         "amount": "371263.34"
       }
     ],
-    "note": "Per paycheck: CRC 30000 gym funding, CRC 10000 Visa debt repayment, and CRC 40000 AMEX debt repayment. Starting with the second half of November, nine debt payments through March total CRC 450000; the pictured balances total CRC 458993.77, leaving CRC 8993.77 before interest, fees, new purchases, or subsequent payments, assuming excess Visa debt allocation is redirected to AMEX. Review and fund the shortfall for the March goal. Gym funding is separate from existing debt; avoid double-counting card purchases. Plans are not proof of payment.",
+    "note": "From December 2026 the recurring model includes CRC 10000 Visa debt repayment and CRC 40000 AMEX debt repayment per paycheck, plus separate CRC 30000 gym funding. User-confirmed aggregate card debt is CRC 450000 as of November 19, superseding the historical aggregate. The per-card balances remain dated November 16 snapshots, not a current split. Nine CRC 50000 installments cover CRC 450000 principal before interest, fees, or new charges; no payoff date or actual payment is established.",
     "gym_charge_schedule": {
       "amount": "60000.00",
       "currency": "CRC",
@@ -402,7 +406,12 @@
       "evidence": "saved schedule confirmed 2026-10-26; card confirmed 2026-11-12; not evidence of payment"
     },
     "gym_funding_per_paycheck_crc": "30000.00",
-    "balances_evidence": "User-provided card screenshot shared 2026-11-16; screenshot capture time not established."
+    "balances_evidence": "User-provided card screenshot shared 2026-11-16; screenshot capture time not established.",
+    "total_debt_crc": "450000.00",
+    "total_debt_as_of": "2026-11-19",
+    "total_debt_evidence": "User confirmed total card debt on November 19, 2026; no updated per-card balance split supplied.",
+    "debt_repayment_per_paycheck_crc": "50000.00",
+    "monthly_debt_repayment_crc": "100000.00"
   },
   "cancelled_subscriptions": [
     {
@@ -443,6 +452,8 @@
       "Racing",
       "Weed"
     ],
-    "misc_detail": "List every Misc and uncategorized transaction in reviewed periods, including confirmed Misc; preserve user-confirmed classifications."
+    "misc_detail": "List every Misc and uncategorized transaction in reviewed periods, including confirmed Misc; preserve user-confirmed classifications.",
+    "future_targets": "Keep future targets outside the recurring budget and omit them from the budget presentation until the user requests a funding decision.",
+    "scheduled_changes": "Apply scheduled_changes on or after each effective_on date. Car repairs add CRC 50000 to each half-month from December 1, 2026. SwipTV adds USD 3.99 once monthly in the first half from December 2026 onward. December and January use the same recurring model; do not add either change twice."
   }
 }
