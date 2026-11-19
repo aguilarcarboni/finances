@@ -447,13 +447,11 @@
     "exchange_rate": "Use a freshly verified BAC Costa Rica compra rate for USD-to-CRC estimates; cite the dated source. Use venta when modeling CRC needed to buy USD. Preserve native CRC and transaction-specific settled amounts.",
     "actual_spending": "Include BAC purchases and applicable assumed-paid car debt, Compass, Seguro BAC, RacingLine and Vision Mundial. Assume only once the applicable period has begun; label assumptions and avoid duplicates. Never add card repayment or gym funding on top of underlying purchases. Include BAC subtotal and exact coverage; report unresolved overlap.",
     "no_allowance_categories": [
-      "Food",
-      "Misc",
-      "Racing",
-      "Weed"
+      "Misc"
     ],
     "misc_detail": "List every Misc and uncategorized transaction in reviewed periods, including confirmed Misc; preserve user-confirmed classifications.",
     "future_targets": "Keep future targets outside the recurring budget and omit them from the budget presentation until the user requests a funding decision.",
-    "scheduled_changes": "Apply scheduled_changes on or after each effective_on date. Car repairs add CRC 50000 to each half-month from December 1, 2026. SwipTV adds USD 3.99 once monthly in the first half from December 2026 onward. December and January use the same recurring model; do not add either change twice."
+    "scheduled_changes": "Apply scheduled_changes on or after each effective_on date. Car repairs add CRC 50000 to each half-month from December 1, 2026. SwipTV adds USD 3.99 once monthly in the first half from December 2026 onward. December and January use the same recurring model; do not add either change twice.",
+    "budget_category_visibility": "Show Misc as Not budgeted in each half-month. Omit Food, Racing and Weed from budget tables per user confirmation November 19, 2026. Historical transaction classifications remain valid; this is a budget presentation change, not a reclassification or deletion of spending."
   }
 }
