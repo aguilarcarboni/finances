@@ -69,12 +69,12 @@
       "period": "first",
       "category": "Subscriptions",
       "name": "RacingLine",
-      "amount": "1.99",
+      "amount": "3.99",
       "payment_evidence_policy": "assume_paid_in_applicable_period_unless_contrary_evidence",
-      "note": "Once monthly on the 4th; assumed paid in the first period unless contrary evidence. Not independently bank-confirmed.",
+      "note": "User corrected RacingLine to USD 3.99 monthly on November 19, 2026. Once monthly on the 4th; assumed paid in the first period unless contrary evidence. Not independently bank-confirmed.",
       "payment_day": 4,
       "recurrence": "Monthly",
-      "confirmed_on": "2026-11-16"
+      "confirmed_on": "2026-11-19"
     },
     {
       "id": "first-admin-compass",
